@@ -11,6 +11,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref }}
       - name: Use Node.js from .nvmrc
         uses: actions/setup-node@v3.6.0
         with:
@@ -27,7 +29,7 @@ jobs:
       - name: Git Auto Commit
         uses: stefanzweifel/git-auto-commit-action@v4.16.0
         with:
-          file_pattern: 'dist/*.*'
+          file_pattern: 'dist/**'
   test:
     name: Test
     runs-on: ubuntu-latest
