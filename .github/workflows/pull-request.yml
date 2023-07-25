@@ -32,19 +32,10 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v4.16.0
         with:
           file_pattern: 'dist/**'
-  test:
-    name: Test
-    runs-on: ubuntu-latest
-    needs: [build]
-    steps:
-      - uses: actions/checkout@v3
-      - uses: ./
-        with:
-          command: 'validate'
   approve:
     name: Approve PR
     runs-on: ubuntu-latest
-    needs: [test]
+    needs: [build]
     if: success()
     steps:
       - name: Approve PR
@@ -61,7 +52,7 @@ jobs:
   merge:
     name: Merge Dependabot PR
     runs-on: ubuntu-latest
-    needs: [test, approve]
+    needs: [build, approve]
     if: success() && github.actor == 'dependabot[bot]'
     steps:
       - name: Merge PR

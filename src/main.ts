@@ -5,7 +5,6 @@ try {
   // `who-to-greet` input defined in action metadata file
   const commands = core.getInput('command').split(',');
   console.log(`Commands to run ${commands}!`);
-  console.log(`Commands to run ${commands.length}!`);
 
   // const time = (new Date()).toTimeString();
   // core.setOutput("time", time);
