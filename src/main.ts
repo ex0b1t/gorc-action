@@ -3,8 +3,8 @@ const github = require('@actions/github');
 
 try {
   // `who-to-greet` input defined in action metadata file
-  const command = core.getInput('command');
-  console.log(`Command to run ${command}!`);
+  const commands = core.getInput('command').split(',');
+  console.log(`Commands to run ${commands}!`);
 
   // const time = (new Date()).toTimeString();
   // core.setOutput("time", time);
