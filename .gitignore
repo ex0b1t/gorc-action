@@ -1,3 +1,6 @@
+lib/
+!dist/
+
 # Created by https://www.toptal.com/developers/gitignore/api/node,macos,windows,intellij+all,visualstudiocode
 # Edit at https://www.toptal.com/developers/gitignore?templates=node,macos,windows,intellij+all,visualstudiocode
 
@@ -308,5 +311,3 @@ $RECYCLE.BIN/
 *.lnk
 
 # End of https://www.toptal.com/developers/gitignore/api/node,macos,windows,intellij+all,visualstudiocode
-
-lib/

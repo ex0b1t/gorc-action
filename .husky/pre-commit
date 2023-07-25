@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
-#sh .husky/scripts/protect-branch-hook
+sh .husky/scripts/protect-branch-hook
 npx lint-staged;

@@ -22,7 +22,14 @@ jobs:
         run: npm run test --if-present
       - name: Build
         run: npm run build
+      - name: Package
+        run: npm run package
+      - name: Git Auto Commit
+        uses: stefanzweifel/git-auto-commit-action@v4.16.0
+        with:
+          file_pattern: 'dist/*.*'
   test:
+    name: Test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
