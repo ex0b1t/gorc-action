@@ -3,8 +3,8 @@ on:
   push:
     branches: [main]
 jobs:
-  test:
-    name: Test
+  build:
+    name: Build
     runs-on: ubuntu-latest
     if: github.actor != 'dependabot[bot]'
     steps:
@@ -13,9 +13,21 @@ jobs:
       - name: Use Node.js from .nvmrc
         uses: actions/setup-node@v3.6.0
         with:
-          node-version-file: ".nvmrc"
-          cache: "npm"
+          node-version-file: '.nvmrc'
+          cache: 'npm'
       - name: Install Dependencies
         run: npm ci
       - name: Unit tests
         run: npm run test --if-present
+      - name: Build
+        run: npm run build
+      - name: Package
+        run: npm run package
+      - name: Compare the expected and actual dist/ directories
+        run: |
+          if [ "$(git diff --ignore-space-at-eol dist/ | wc -l)" -gt "0" ]; then
+            echo "Detected uncommitted changes after build.  See status below:"
+            git diff
+            exit 1
+          fi
+        id: diff
