@@ -6,6 +6,9 @@ try {
   const commands = core.getInput('command').split(',');
   console.log(`Commands to run ${commands}!`);
 
+  const organisation = core.getInput('organisation').split(',');
+  console.log(`Org ${organisation}!`);
+
   // const time = (new Date()).toTimeString();
   // core.setOutput("time", time);
 
