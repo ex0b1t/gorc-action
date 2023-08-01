@@ -6,6 +6,11 @@ inputs:
     description: |
       Command(s) to run.
       Use a comma separated list to run several commands on the same set of parameters, for instance validate,dry-run
+  organization:
+    required: true
+    description: |
+      GitHub Organization
+    default: ${{ github.repository_owner }}
   github-token:
     description: GitHub Token to write comments
     default: ${{ github.token }}

@@ -11,8 +11,8 @@
     "package": "ncc build --source-map"
   },
   "keywords": [],
-  "author": "",
-  "license": "gpl-3.0",
+  "author": "ex0b1t",
+  "license": "GPL-3.0",
   "lint-staged": {
     "**/*": "prettier --write --ignore-unknown"
   },
