@@ -28,13 +28,14 @@ export function removeEmpty(obj: any) {
 
 const gops: Gops = yaml.load(fs.readFileSync('.github/gops.yml', { encoding: 'utf8' })) as Gops;
 
-export const init = async (organisation: string) => {
-  gops.org = await getOrg(organisation);
-  gops.members = await getOrgMembers(organisation);
-  gops.teams = await getOrgTeams(organisation);
-  gops.repos = await getOrgRepos(organisation);
+export const init = async (organization: string) => {
+  gops.org = await getOrg(organization);
+  gops.members = await getOrgMembers(organization);
+  gops.teams = await getOrgTeams(organization);
+  gops.repos = await getOrgRepos(organization);
 
   removeEmpty(gops);
+  logger.info('Writing gops.yml');
   fs.writeFileSync('.github/gops.yml', yaml.dump(gops), { encoding: 'utf8' });
   return gops;
 };
@@ -58,14 +59,14 @@ export const validate = async (): Promise<boolean> => {
   return valid;
 };
 
-export const apply = async (organisation: string, dryRun = true): Promise<Gops> => {
+export const apply = async (organization: string, dryRun = true): Promise<Gops> => {
   let updated: Gops = { org: {}, members: [], teams: [], repos: [] };
 
   // handle changes
-  updated.org = await applyOrg(organisation, dryRun, gops.org);
-  updated.members = await applyMembers(organisation, dryRun, gops.members);
-  updated.teams = await applyTeams(organisation, dryRun, gops.teams);
-  updated.repos = await applyRepos(organisation, dryRun, gops.repos);
+  updated.org = await applyOrg(organization, dryRun, gops.org);
+  updated.members = await applyMembers(organization, dryRun, gops.members);
+  updated.teams = await applyTeams(organization, dryRun, gops.teams);
+  updated.repos = await applyRepos(organization, dryRun, gops.repos);
 
   return updated;
 };

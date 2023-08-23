@@ -17,7 +17,7 @@ This action is used to administer a GitHub organization. You can manage users, t
 
 ### `organization`
 
-**Required** The name of your GitHub organisation to apply the changes to.
+**Required** The name of your GitHub organization to apply the changes to.
 
 ### `github-token`
 

@@ -6,19 +6,20 @@ import { apply, Gops, init, validate } from './gops.js';
 import { logger } from './logger.js';
 
 try {
-  const organisation: string = core.getInput('organisation');
-  logger.info(`Org ${organisation}!`);
+  const organization: string = core.getInput('organization');
+  logger.info(`Org ${organization}!`);
+  if (!organization) throw new Error('Organization is required!');
 
   const commands: string[] = core.getInput('command').split(',');
   logger.info(`Commands to run ${commands}!`);
 
   // loop over commands
-  let output: { org: string; gops?: Gops; valid?: boolean; errors?: any } = { org: organisation };
+  let output: { org: string; gops?: Gops; valid?: boolean; errors?: any } = { org: organization };
 
   for (const command of commands) {
     switch (command) {
       case 'init':
-        await init(organisation)
+        await init(organization)
           .then((gops) => {
             output.gops = gops;
           })
@@ -36,7 +37,7 @@ try {
           });
         break;
       case 'dry-run':
-        await apply(organisation, true)
+        await apply(organization, true)
           .then((gops) => {
             output.gops = gops;
           })
@@ -45,7 +46,7 @@ try {
           });
         break;
       case 'apply':
-        await apply(organisation, false)
+        await apply(organization, false)
           .then((gops) => {
             output.gops = gops;
           })

@@ -75444,12 +75444,13 @@ function removeEmpty(obj) {
     return obj;
 }
 const gops = js_yaml.load(external_fs_.readFileSync('.github/gops.yml', { encoding: 'utf8' }));
-const init = async (organisation) => {
-    gops.org = await get(organisation);
-    gops.members = await members_get(organisation);
-    gops.teams = await teams_get(organisation);
-    gops.repos = await repositories_get(organisation);
+const init = async (organization) => {
+    gops.org = await get(organization);
+    gops.members = await members_get(organization);
+    gops.teams = await teams_get(organization);
+    gops.repos = await repositories_get(organization);
     removeEmpty(gops);
+    logger/* logger.info */.k.info('Writing gops.yml');
     external_fs_.writeFileSync('.github/gops.yml', js_yaml.dump(gops), { encoding: 'utf8' });
     return gops;
 };
@@ -75470,13 +75471,13 @@ const validate = async () => {
     }
     return valid;
 };
-const gops_apply = async (organisation, dryRun = true) => {
+const gops_apply = async (organization, dryRun = true) => {
     let updated = { org: {}, members: [], teams: [], repos: [] };
     // handle changes
-    updated.org = await apply(organisation, dryRun, gops.org);
-    updated.members = await members_apply(organisation, dryRun, gops.members);
-    updated.teams = await teams_apply(organisation, dryRun, gops.teams);
-    updated.repos = await repositories_apply(organisation, dryRun, gops.repos);
+    updated.org = await apply(organization, dryRun, gops.org);
+    updated.members = await members_apply(organization, dryRun, gops.members);
+    updated.teams = await teams_apply(organization, dryRun, gops.teams);
+    updated.repos = await repositories_apply(organization, dryRun, gops.repos);
     return updated;
 };
 
@@ -75522,16 +75523,18 @@ dotenv__WEBPACK_IMPORTED_MODULE_0__.config();
 
 
 try {
-    const organisation = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('organisation');
-    _logger_js__WEBPACK_IMPORTED_MODULE_4__/* .logger.info */ .k.info(`Org ${organisation}!`);
+    const organization = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('organization');
+    _logger_js__WEBPACK_IMPORTED_MODULE_4__/* .logger.info */ .k.info(`Org ${organization}!`);
+    if (!organization)
+        throw new Error('Organization is required!');
     const commands = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('command').split(',');
     _logger_js__WEBPACK_IMPORTED_MODULE_4__/* .logger.info */ .k.info(`Commands to run ${commands}!`);
     // loop over commands
-    let output = { org: organisation };
+    let output = { org: organization };
     for (const command of commands) {
         switch (command) {
             case 'init':
-                await (0,_gops_js__WEBPACK_IMPORTED_MODULE_3__/* .init */ .S1)(organisation)
+                await (0,_gops_js__WEBPACK_IMPORTED_MODULE_3__/* .init */ .S1)(organization)
                     .then((gops) => {
                     output.gops = gops;
                 })
@@ -75549,7 +75552,7 @@ try {
                 });
                 break;
             case 'dry-run':
-                await (0,_gops_js__WEBPACK_IMPORTED_MODULE_3__/* .apply */ .nn)(organisation, true)
+                await (0,_gops_js__WEBPACK_IMPORTED_MODULE_3__/* .apply */ .nn)(organization, true)
                     .then((gops) => {
                     output.gops = gops;
                 })
@@ -75558,7 +75561,7 @@ try {
                 });
                 break;
             case 'apply':
-                await (0,_gops_js__WEBPACK_IMPORTED_MODULE_3__/* .apply */ .nn)(organisation, false)
+                await (0,_gops_js__WEBPACK_IMPORTED_MODULE_3__/* .apply */ .nn)(organization, false)
                     .then((gops) => {
                     output.gops = gops;
                 })
