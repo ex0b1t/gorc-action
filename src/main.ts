@@ -11,33 +11,30 @@ try {
   logger.info(`Org ${organization}!`);
   if (!organization) throw new Error('Organization is required!');
 
-  const commands: string[] = core.getInput('command').split(',');
-  logger.info(`Commands to run ${commands}!`);
+  const command: string = core.getInput('command');
+  logger.info(`Command to run ${command}!`);
 
-  // loop over commands
-  let output: { org: string; gops?: Gops; valid?: boolean; errors?: any } = { org: organization };
+  let output: { org: string; gops?: Gops; valid?: boolean; errors?: any[] } = { org: organization, errors: [] };
 
-  for (const command of commands) {
-    try {
-      switch (command) {
-        case 'init':
-          output.gops = await init(organization);
-          break;
-        case 'validate':
-          output.valid = await validate();
-          break;
-        case 'dry-run':
-          output.gops = await apply(organization, true);
-          break;
-        case 'apply':
-          output.gops = await apply(organization, false);
-          break;
-        default:
-          throw new Error(`Unknown command ${command}`);
-      }
-    } catch (err) {
-      output.errors = err;
+  try {
+    switch (command) {
+      case 'init':
+        output.gops = await init(organization);
+        break;
+      case 'validate':
+        output.valid = await validate();
+        break;
+      case 'dry-run':
+        output.gops = await apply(organization, true);
+        break;
+      case 'apply':
+        output.gops = await apply(organization, false);
+        break;
+      default:
+        output.errors?.push(new Error(`Unknown command ${command}`));
     }
+  } catch (err) {
+    output.errors?.push(err);
   }
 
   logger.verbose(`Output ${JSON.stringify(output)}`);

@@ -4,8 +4,7 @@ inputs:
   command:
     required: true
     description: |
-      Command(s) to run.
-      Use a comma separated list to run several commands on the same set of parameters, for instance validate,dry-run
+      Command to run, for instance dry-run
   organization:
     required: true
     description: |

@@ -6,7 +6,7 @@ This action is used to administer a GitHub organization. You can manage users, t
 
 ### `command`
 
-**Required** Comma seperated list of commands to execute.
+**Required** Command to execute.
 
 | Command  | Description                                                   |
 | -------- | ------------------------------------------------------------- |

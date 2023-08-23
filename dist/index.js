@@ -75529,32 +75529,29 @@ try {
     _logger_js__WEBPACK_IMPORTED_MODULE_4__/* .logger.info */ .k.info(`Org ${organization}!`);
     if (!organization)
         throw new Error('Organization is required!');
-    const commands = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('command').split(',');
-    _logger_js__WEBPACK_IMPORTED_MODULE_4__/* .logger.info */ .k.info(`Commands to run ${commands}!`);
-    // loop over commands
-    let output = { org: organization };
-    for (const command of commands) {
-        try {
-            switch (command) {
-                case 'init':
-                    output.gops = await (0,_gops_js__WEBPACK_IMPORTED_MODULE_3__/* .init */ .S1)(organization);
-                    break;
-                case 'validate':
-                    output.valid = await (0,_gops_js__WEBPACK_IMPORTED_MODULE_3__/* .validate */ .Gu)();
-                    break;
-                case 'dry-run':
-                    output.gops = await (0,_gops_js__WEBPACK_IMPORTED_MODULE_3__/* .apply */ .nn)(organization, true);
-                    break;
-                case 'apply':
-                    output.gops = await (0,_gops_js__WEBPACK_IMPORTED_MODULE_3__/* .apply */ .nn)(organization, false);
-                    break;
-                default:
-                    throw new Error(`Unknown command ${command}`);
-            }
+    const command = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('command');
+    _logger_js__WEBPACK_IMPORTED_MODULE_4__/* .logger.info */ .k.info(`Command to run ${command}!`);
+    let output = { org: organization, errors: [] };
+    try {
+        switch (command) {
+            case 'init':
+                output.gops = await (0,_gops_js__WEBPACK_IMPORTED_MODULE_3__/* .init */ .S1)(organization);
+                break;
+            case 'validate':
+                output.valid = await (0,_gops_js__WEBPACK_IMPORTED_MODULE_3__/* .validate */ .Gu)();
+                break;
+            case 'dry-run':
+                output.gops = await (0,_gops_js__WEBPACK_IMPORTED_MODULE_3__/* .apply */ .nn)(organization, true);
+                break;
+            case 'apply':
+                output.gops = await (0,_gops_js__WEBPACK_IMPORTED_MODULE_3__/* .apply */ .nn)(organization, false);
+                break;
+            default:
+                output.errors?.push(new Error(`Unknown command ${command}`));
         }
-        catch (err) {
-            output.errors = err;
-        }
+    }
+    catch (err) {
+        output.errors?.push(err);
     }
     _logger_js__WEBPACK_IMPORTED_MODULE_4__/* .logger.verbose */ .k.verbose(`Output ${JSON.stringify(output)}`);
     _actions_core__WEBPACK_IMPORTED_MODULE_1__.setOutput('org', output.org);
