@@ -252,13 +252,13 @@
           "description": "Behaviour to apply if an unknown member is found\n",
           "type": "string",
           "enum": ["delete", "convert_to_outside_collaborator", "warn"],
-          "default": "delete"
+          "default": "convert_to_outside_collaborator"
         },
         "unknown_repositories": {
           "description": "Behaviour to apply if an unknown repository is found\n",
           "type": "string",
           "enum": ["delete", "archive", "warn"],
-          "default": "delete"
+          "default": "archive"
         },
         "outside_collaborator_elevated_permissions": {
           "description": "Behaviour to apply if an outside collaborator has elevated permissions\n",
@@ -266,8 +266,8 @@
           "enum": ["downgrade", "warn"],
           "default": "downgrade"
         },
-        "repository_collaborator_direct_membership": {
-          "description": "Behaviour to apply if a repository collaborator has direct membership to a given repository\n",
+        "repository_direct_membership": {
+          "description": "Behaviour to apply if a repository has direct members\n",
           "type": "string",
           "enum": ["warn", "downgrade", "remove"],
           "default": "remove"
