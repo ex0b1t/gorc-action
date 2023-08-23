@@ -75534,46 +75534,26 @@ try {
     // loop over commands
     let output = { org: organization };
     for (const command of commands) {
-        switch (command) {
-            case 'init':
-                await (0,_gops_js__WEBPACK_IMPORTED_MODULE_3__/* .init */ .S1)(organization)
-                    .then((gops) => {
-                    output.gops = gops;
-                })
-                    .catch((err) => {
-                    output.errors = err;
-                });
-                break;
-            case 'validate':
-                await (0,_gops_js__WEBPACK_IMPORTED_MODULE_3__/* .validate */ .Gu)()
-                    .then((valid) => {
-                    output.valid = valid;
-                })
-                    .catch((err) => {
-                    output.errors = err;
-                });
-                break;
-            case 'dry-run':
-                await (0,_gops_js__WEBPACK_IMPORTED_MODULE_3__/* .apply */ .nn)(organization, true)
-                    .then((gops) => {
-                    output.gops = gops;
-                })
-                    .catch((err) => {
-                    output.errors = err;
-                });
-                break;
-            case 'apply':
-                await (0,_gops_js__WEBPACK_IMPORTED_MODULE_3__/* .apply */ .nn)(organization, false)
-                    .then((gops) => {
-                    output.gops = gops;
-                })
-                    .catch((err) => {
-                    output.errors = err;
-                });
-                break;
-            default:
-                output.errors = new Error(`Unknown command ${command}`);
-                break;
+        try {
+            switch (command) {
+                case 'init':
+                    output.gops = await (0,_gops_js__WEBPACK_IMPORTED_MODULE_3__/* .init */ .S1)(organization);
+                    break;
+                case 'validate':
+                    output.valid = await (0,_gops_js__WEBPACK_IMPORTED_MODULE_3__/* .validate */ .Gu)();
+                    break;
+                case 'dry-run':
+                    output.gops = await (0,_gops_js__WEBPACK_IMPORTED_MODULE_3__/* .apply */ .nn)(organization, true);
+                    break;
+                case 'apply':
+                    output.gops = await (0,_gops_js__WEBPACK_IMPORTED_MODULE_3__/* .apply */ .nn)(organization, false);
+                    break;
+                default:
+                    throw new Error(`Unknown command ${command}`);
+            }
+        }
+        catch (err) {
+            output.errors = err;
         }
     }
     _logger_js__WEBPACK_IMPORTED_MODULE_4__/* .logger.verbose */ .k.verbose(`Output ${JSON.stringify(output)}`);

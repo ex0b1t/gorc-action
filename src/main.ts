@@ -1,4 +1,5 @@
 import dotenv from 'dotenv';
+
 dotenv.config();
 import core from '@actions/core';
 import github from '@actions/github';
@@ -17,46 +18,25 @@ try {
   let output: { org: string; gops?: Gops; valid?: boolean; errors?: any } = { org: organization };
 
   for (const command of commands) {
-    switch (command) {
-      case 'init':
-        await init(organization)
-          .then((gops) => {
-            output.gops = gops;
-          })
-          .catch((err) => {
-            output.errors = err;
-          });
-        break;
-      case 'validate':
-        await validate()
-          .then((valid) => {
-            output.valid = valid;
-          })
-          .catch((err) => {
-            output.errors = err;
-          });
-        break;
-      case 'dry-run':
-        await apply(organization, true)
-          .then((gops) => {
-            output.gops = gops;
-          })
-          .catch((err) => {
-            output.errors = err;
-          });
-        break;
-      case 'apply':
-        await apply(organization, false)
-          .then((gops) => {
-            output.gops = gops;
-          })
-          .catch((err) => {
-            output.errors = err;
-          });
-        break;
-      default:
-        output.errors = new Error(`Unknown command ${command}`);
-        break;
+    try {
+      switch (command) {
+        case 'init':
+          output.gops = await init(organization);
+          break;
+        case 'validate':
+          output.valid = await validate();
+          break;
+        case 'dry-run':
+          output.gops = await apply(organization, true);
+          break;
+        case 'apply':
+          output.gops = await apply(organization, false);
+          break;
+        default:
+          throw new Error(`Unknown command ${command}`);
+      }
+    } catch (err) {
+      output.errors = err;
     }
   }
 
