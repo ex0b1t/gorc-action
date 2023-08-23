@@ -6,10 +6,15 @@ inputs:
     description: |
       Command to run, for instance dry-run
   organization:
-    required: true
     description: |
       GitHub Organization
     default: ${{ github.repository_owner }}
+    required: false
+  gops-config:
+    description: |
+      Path to gops config file
+    default: .github/gops.yml
+    required: false
   github-token:
     description: GitHub Token to write comments
     default: ${{ github.token }}

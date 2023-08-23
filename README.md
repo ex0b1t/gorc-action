@@ -17,11 +17,15 @@ This action is used to administer a GitHub organization. You can manage users, t
 
 ### `organization`
 
-**Required** The name of your GitHub organization to apply the changes to. Default `${{ github.repository_owner }}`.
+**Optional** The name of your GitHub organization to apply the changes to. Default `${{ github.repository_owner }}`.
+
+### `gops-config`
+
+**Optional** The path to your gops config file. Default `.github/gops.yml`.
 
 ### `github-token`
 
-**Required** The credentials to use to apply changes to organization. Default `GITHUB_TOKEN`.
+**Optional** The credentials to use to apply changes to organization. Default `GITHUB_TOKEN`.
 
 ## Example usage
 

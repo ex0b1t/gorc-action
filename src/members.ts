@@ -1,6 +1,6 @@
-import { getOrgCollaborators, getOrgMembers } from './octokit.js';
-import { logger } from './logger.js';
-import { removeEmpty } from './gops.js';
+import { getOrgCollaborators, getOrgMembers } from './octokit';
+import { logger } from './logger';
+import { removeEmpty } from './gops';
 
 export interface Member {
   login: string;

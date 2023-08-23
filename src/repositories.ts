@@ -1,6 +1,6 @@
-import { getOrgRepos, getRepoCollaborators, getRepoTeams } from './octokit.js';
-import { logger } from './logger.js';
-import { removeEmpty } from './gops.js';
+import { getOrgRepos, getRepoCollaborators, getRepoTeams } from './octokit';
+import { logger } from './logger';
+import { removeEmpty } from './gops';
 
 export interface Repository {
   name: string;

@@ -1,7 +1,7 @@
-import { getOrgTeams, getTeamMembers } from './octokit.js';
-import { Member } from './members.js';
-import { logger } from './logger.js';
-import { removeEmpty } from './gops.js';
+import { getOrgTeams, getTeamMembers } from './octokit';
+import { Member } from './members';
+import { logger } from './logger';
+import { removeEmpty } from './gops';
 
 export interface Team {
   slug: string;
