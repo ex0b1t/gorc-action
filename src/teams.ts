@@ -13,6 +13,7 @@ export interface Team {
 }
 
 export async function get(login: string): Promise<Team[]> {
+  logger.verbose(`Getting teams for ${login}`);
   const teams = (await getOrgTeams(login)) as any[];
   return Promise.all(
     teams.map(async (team) => ({
@@ -36,6 +37,7 @@ export async function get(login: string): Promise<Team[]> {
 }
 
 export async function apply(login: string, dryrun: boolean = true, teams: Team[]): Promise<Team[]> {
+  logger.verbose(`Applying teams for ${login} dryrun ${dryrun}`);
   const currentTeams = await get(login);
   removeEmpty(teams);
   removeEmpty(currentTeams);
@@ -69,6 +71,7 @@ export async function apply(login: string, dryrun: boolean = true, teams: Team[]
       }
     }
   });
+  logger.debug('diff', differences);
 
   if (differences.remove.length > 0 || differences.update.length > 0 || differences.members.length > 0) {
     logger.info(
@@ -78,13 +81,13 @@ export async function apply(login: string, dryrun: boolean = true, teams: Team[]
         (m) => m.slug
       )} \n\tmembers to be updated: ${differences.members.map((m) => m.team)}`
     );
-    logger.verbose('diff', differences);
+    logger.debug('diff', differences);
     if (!dryrun) {
-      logger.info('Applying changes to teams');
+      logger.verbose('Applying changes to teams');
       // todo: apply changes
       return teams;
     } else {
-      logger.info('Dry run, not applying changes');
+      logger.verbose('Dry run, not applying changes');
       return teams;
     }
   } else {

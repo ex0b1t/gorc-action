@@ -8,6 +8,7 @@ export interface Member {
 }
 
 export async function get(login: string): Promise<Member[]> {
+  logger.verbose(`Getting members for ${login}`);
   const admins = (await getOrgMembers(login, 'admin')) as any[];
   const members = (await getOrgMembers(login, 'member')) as any[];
   const collaborators = (await getOrgCollaborators(login)) as any[];
@@ -28,6 +29,7 @@ export async function get(login: string): Promise<Member[]> {
 }
 
 export async function apply(login: string, dryrun: boolean = true, members: Member[]): Promise<Member[]> {
+  logger.verbose(`Applying members for ${login} dryrun ${dryrun}`);
   const currentMembers = await get(login);
   removeEmpty(currentMembers);
   logger.silly('currentMembers', currentMembers);
@@ -41,6 +43,7 @@ export async function apply(login: string, dryrun: boolean = true, members: Memb
     remove: currentMembers.filter((cm) => !members.find((m) => exist(cm, m))),
     update: members.filter((m) => !currentMembers.find((cm) => same(cm, m)))
   };
+  logger.debug('diff', differences);
 
   if (differences.remove.length > 0 || differences.update.length > 0) {
     logger.info(
@@ -50,11 +53,11 @@ export async function apply(login: string, dryrun: boolean = true, members: Memb
     );
     logger.verbose('diff', differences);
     if (!dryrun) {
-      logger.info('Applying changes to members');
+      logger.verbose('Applying changes to members');
       // todo: apply changes
       return members;
     } else {
-      logger.info('Dry run, not applying changes');
+      logger.verbose('Dry run, not applying changes');
       return members;
     }
   } else {

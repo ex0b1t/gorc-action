@@ -27,14 +27,14 @@ export function removeEmpty(obj: any) {
 }
 
 export const init = async (gops: Gops, organization: string, configFile: string) => {
-  logger.info('Initializing gops.yml');
+  logger.verbose('Running init');
   gops.org = await getOrg(organization);
   gops.members = await getOrgMembers(organization);
   gops.teams = await getOrgTeams(organization);
   gops.repos = await getOrgRepos(organization);
 
   removeEmpty(gops);
-  logger.info(`Writing gops.yml at path '${configFile}'`);
+  logger.verbose(`Writing gops.yml at path '${configFile}'`);
   fs.writeFileSync(configFile, yaml.dump(gops), { encoding: 'utf8' });
   logger.debug('gops.yml written');
   return gops;
@@ -44,7 +44,7 @@ export const init = async (gops: Gops, organization: string, configFile: string)
  * Validate the gops.yml file against the schema
  */
 export const validate = async (gops: Gops): Promise<boolean> => {
-  logger.info('Validating gops.yml');
+  logger.verbose('Running validation');
   const ajv = new Ajv();
   const schema = JSON.parse(fs.readFileSync('gops-schema.json', { encoding: 'utf8' }));
   const validate = ajv.compile(schema);
@@ -60,7 +60,7 @@ export const validate = async (gops: Gops): Promise<boolean> => {
 };
 
 export const apply = async (gops: Gops, organization: string, dryRun = true): Promise<Gops> => {
-  logger.info(`${dryRun ? 'Dry-running' : 'Applying'} gops.yml`);
+  logger.verbose(`Running ${dryRun ? 'Dry-run' : 'Apply'}`);
   let updated: Gops = { org: {}, members: [], teams: [], repos: [] };
 
   // handle changes
@@ -73,11 +73,11 @@ export const apply = async (gops: Gops, organization: string, dryRun = true): Pr
 };
 
 export const run = async (org: string, cmd: string, configFile: string): Promise<any> => {
-  logger.info(`Running gops with org '${org}' and command '${cmd}' and configFile '${configFile}'!`);
+  logger.verbose(`Running gops with org '${org}' and command '${cmd}' and configFile '${configFile}'!`);
 
   const gops: Gops = (yaml.load(fs.readFileSync(configFile, { encoding: 'utf8' })) as Gops) || {};
   logger.debug(`Gops config file read successfully!`);
-  logger.silly(JSON.stringify(gops));
+  logger.silly('Gops config content', gops);
 
   let output: { org: string; gops?: Gops; valid?: boolean; errors?: any[] } = { org: org, errors: [] };
 
@@ -102,6 +102,6 @@ export const run = async (org: string, cmd: string, configFile: string): Promise
     output.errors?.push(err);
   }
 
-  logger.verbose(`Output ${JSON.stringify(output)}`);
+  logger.verbose('Output', output);
   return output;
 };

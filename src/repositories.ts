@@ -25,6 +25,7 @@ export interface Repository {
 }
 
 export async function get(login: string): Promise<Repository[]> {
+  logger.verbose(`Getting repos for ${login}`);
   const repos = (await getOrgRepos(login)) as any[];
   return Promise.all(
     repos.map(async (repo) => ({
@@ -52,6 +53,7 @@ export async function get(login: string): Promise<Repository[]> {
 }
 
 export async function apply(login: string, dryrun: boolean = true, repos: Repository[]): Promise<Repository[]> {
+  logger.verbose(`Applying repos for ${login} dryrun ${dryrun}`);
   const currentRepos = await get(login);
   removeEmpty(repos);
   removeEmpty(currentRepos);
@@ -111,6 +113,8 @@ export async function apply(login: string, dryrun: boolean = true, repos: Reposi
     }
   });
 
+  logger.debug('diff', differences);
+
   if (
     differences.remove.length > 0 ||
     differences.update.length > 0 ||
@@ -128,11 +132,11 @@ export async function apply(login: string, dryrun: boolean = true, repos: Reposi
     );
     logger.verbose('diff', differences);
     if (!dryrun) {
-      logger.info('Applying changes to repos');
+      logger.verbose('Applying changes to repos');
       // todo: apply changes
       return repos;
     } else {
-      logger.info('Dry run, not applying changes');
+      logger.verbose('Dry run, not applying changes');
       return repos;
     }
   } else {

@@ -68554,21 +68554,33 @@ const getOrg = async (org) => {
     });
 };
 const getOrgMembers = async (org, role = 'all') => {
-    return await octokit.paginate('GET /orgs/{org}/members?role={role}', {
+    return await octokit
+        .paginate('GET /orgs/{org}/members?role={role}', {
         org: org,
         role: role,
         per_page: 100
+    })
+        .catch((error) => {
+        throw error;
     });
 };
 const getOrgCollaborators = async (org) => {
-    return await octokit.paginate('GET /orgs/{org}/outside_collaborators', {
+    return await octokit
+        .paginate('GET /orgs/{org}/outside_collaborators', {
         org: org,
         per_page: 100
+    })
+        .catch((error) => {
+        throw error;
     });
 };
 const getUser = async (username) => {
-    return await octokit.request('GET /users/{username}', {
+    return await octokit
+        .request('GET /users/{username}', {
         username: username
+    })
+        .catch((error) => {
+        throw error;
     });
 };
 const getOrgTeams = async (org) => {
@@ -68578,32 +68590,48 @@ const getOrgTeams = async (org) => {
     });
 };
 const getTeamMembers = async (org, slug, role = 'all') => {
-    return await octokit.paginate('GET /orgs/{org}/teams/{slug}/members?role={role}', {
+    return await octokit
+        .paginate('GET /orgs/{org}/teams/{slug}/members?role={role}', {
         org: org,
         slug: slug,
         role: role,
         per_page: 100
+    })
+        .catch((error) => {
+        throw error;
     });
 };
 const getOrgRepos = async (org) => {
-    return await octokit.paginate('GET /orgs/{org}/repos', {
+    return await octokit
+        .paginate('GET /orgs/{org}/repos', {
         org: org,
         per_page: 100
+    })
+        .catch((error) => {
+        throw error;
     });
 };
 const getRepoCollaborators = async (owner, repo, affiliation = 'direct') => {
-    return await octokit.paginate('GET /repos/{owner}/{repo}/collaborators?affiliation={affiliation}', {
+    return await octokit
+        .paginate('GET /repos/{owner}/{repo}/collaborators?affiliation={affiliation}', {
         owner: owner,
         repo: repo,
         affiliation: affiliation,
         per_page: 100
+    })
+        .catch((error) => {
+        throw error;
     });
 };
 const getRepoTeams = async (owner, repo) => {
-    return await octokit.paginate('GET /repos/{owner}/{repo}/teams', {
+    return await octokit
+        .paginate('GET /repos/{owner}/{repo}/teams', {
         owner: owner,
         repo: repo,
         per_page: 100
+    })
+        .catch((error) => {
+        throw error;
     });
 };
 
@@ -68613,8 +68641,10 @@ var winston = __nccwpck_require__(4158);
 
 
 main.config();
+const logLevel = process.env.LOG_LEVEL || 'debug';
+console.log('logLevel', logLevel);
 const logger = winston.createLogger({
-    level: process.env.LOG_LEVEL || 'info',
+    level: logLevel,
     transports: [
         new winston.transports.Console({
             format: winston.format.simple()
@@ -68630,43 +68660,53 @@ var deep_diff = __nccwpck_require__(3426);
 
 
 async function get(login) {
-    const org = await getOrg(login).then((res) => res.data);
-    return {
-        billing_email: org.billing_email,
-        company: org.company,
-        email: org.email,
-        twitter_username: org.twitter_username,
-        location: org.location,
-        name: org.name,
-        description: org.description,
-        has_organization_projects: org.has_organization_projects,
-        has_repository_projects: org.has_repository_projects,
-        default_repository_permission: org.default_repository_permission,
-        members_can_create_repositories: org.members_can_create_repositories,
-        members_can_create_internal_repositories: org.members_can_create_internal_repositories,
-        members_can_create_private_repositories: org.members_can_create_private_repositories,
-        members_can_create_public_repositories: org.members_can_create_public_repositories,
-        members_can_create_pages: org.members_can_create_pages,
-        members_can_create_public_pages: org.members_can_create_public_pages,
-        members_can_create_private_pages: org.members_can_create_private_pages,
-        members_can_fork_private_repositories: org.members_can_fork_private_repositories,
-        web_commit_signoff_required: org.web_commit_signoff_required
-    };
+    logger.verbose(`Getting org ${login}`);
+    try {
+        const { data: org } = await getOrg(login);
+        logger.silly('org', org);
+        return {
+            billing_email: org.billing_email,
+            company: org.company,
+            email: org.email,
+            twitter_username: org.twitter_username,
+            location: org.location,
+            name: org.name,
+            description: org.description,
+            has_organization_projects: org.has_organization_projects,
+            has_repository_projects: org.has_repository_projects,
+            default_repository_permission: org.default_repository_permission,
+            members_can_create_repositories: org.members_can_create_repositories,
+            members_can_create_internal_repositories: org.members_can_create_internal_repositories,
+            members_can_create_private_repositories: org.members_can_create_private_repositories,
+            members_can_create_public_repositories: org.members_can_create_public_repositories,
+            members_can_create_pages: org.members_can_create_pages,
+            members_can_create_public_pages: org.members_can_create_public_pages,
+            members_can_create_private_pages: org.members_can_create_private_pages,
+            members_can_fork_private_repositories: org.members_can_fork_private_repositories,
+            web_commit_signoff_required: org.web_commit_signoff_required
+        };
+    }
+    catch (error) {
+        logger.error('Error getting org', error);
+        throw error;
+    }
 }
 async function apply(login, dryrun = true, org) {
+    logger.verbose(`Applying org ${login} dryrun ${dryrun}`);
     const currentOrg = await get(login);
     removeEmpty(currentOrg);
     const differences = deep_diff(currentOrg, org);
+    logger.debug('diff', differences);
     if (differences) {
         logger.info(`Org is out of sync, fields to be updated: ${differences.map((d) => d.path?.join('.')).join(', ')}`);
         logger.verbose('diff', differences);
         if (!dryrun) {
-            logger.info('Applying changes to org');
+            logger.verbose('Applying changes to org');
             // todo: apply changes
             return org;
         }
         else {
-            logger.info('Dry run, not applying changes');
+            logger.verbose('Dry run, not applying changes');
             return org;
         }
     }
@@ -68681,6 +68721,7 @@ async function apply(login, dryrun = true, org) {
 
 
 async function members_get(login) {
+    logger.verbose(`Getting members for ${login}`);
     const admins = (await getOrgMembers(login, 'admin'));
     const members = (await getOrgMembers(login, 'member'));
     const collaborators = (await getOrgCollaborators(login));
@@ -68700,6 +68741,7 @@ async function members_get(login) {
     ]);
 }
 async function members_apply(login, dryrun = true, members) {
+    logger.verbose(`Applying members for ${login} dryrun ${dryrun}`);
     const currentMembers = await members_get(login);
     removeEmpty(currentMembers);
     logger.silly('currentMembers', currentMembers);
@@ -68710,16 +68752,17 @@ async function members_apply(login, dryrun = true, members) {
         remove: currentMembers.filter((cm) => !members.find((m) => exist(cm, m))),
         update: members.filter((m) => !currentMembers.find((cm) => same(cm, m)))
     };
+    logger.debug('diff', differences);
     if (differences.remove.length > 0 || differences.update.length > 0) {
         logger.info(`Members are out of sync, \n\tmembers to be updated: ${differences.update.map((m) => m.login)} \n\tmembers to be removed: ${differences.remove.map((m) => m.login)}`);
         logger.verbose('diff', differences);
         if (!dryrun) {
-            logger.info('Applying changes to members');
+            logger.verbose('Applying changes to members');
             // todo: apply changes
             return members;
         }
         else {
-            logger.info('Dry run, not applying changes');
+            logger.verbose('Dry run, not applying changes');
             return members;
         }
     }
@@ -68734,6 +68777,7 @@ async function members_apply(login, dryrun = true, members) {
 
 
 async function teams_get(login) {
+    logger.verbose(`Getting teams for ${login}`);
     const teams = (await getOrgTeams(login));
     return Promise.all(teams.map(async (team) => ({
         slug: team.slug,
@@ -68754,6 +68798,7 @@ async function teams_get(login) {
     })));
 }
 async function teams_apply(login, dryrun = true, teams) {
+    logger.verbose(`Applying teams for ${login} dryrun ${dryrun}`);
     const currentTeams = await teams_get(login);
     removeEmpty(teams);
     removeEmpty(currentTeams);
@@ -68780,16 +68825,17 @@ async function teams_apply(login, dryrun = true, teams) {
             }
         }
     });
+    logger.debug('diff', differences);
     if (differences.remove.length > 0 || differences.update.length > 0 || differences.members.length > 0) {
         logger.info(`Teams are out of sync, \n\tteams to be updated: ${differences.update.map((m) => m.slug)} \n\tteams to be removed: ${differences.remove.map((m) => m.slug)} \n\tmembers to be updated: ${differences.members.map((m) => m.team)}`);
-        logger.verbose('diff', differences);
+        logger.debug('diff', differences);
         if (!dryrun) {
-            logger.info('Applying changes to teams');
+            logger.verbose('Applying changes to teams');
             // todo: apply changes
             return teams;
         }
         else {
-            logger.info('Dry run, not applying changes');
+            logger.verbose('Dry run, not applying changes');
             return teams;
         }
     }
@@ -68804,6 +68850,7 @@ async function teams_apply(login, dryrun = true, teams) {
 
 
 async function repositories_get(login) {
+    logger.verbose(`Getting repos for ${login}`);
     const repos = (await getOrgRepos(login));
     return Promise.all(repos.map(async (repo) => ({
         name: repo.name,
@@ -68828,6 +68875,7 @@ async function repositories_get(login) {
     })));
 }
 async function repositories_apply(login, dryrun = true, repos) {
+    logger.verbose(`Applying repos for ${login} dryrun ${dryrun}`);
     const currentRepos = await repositories_get(login);
     removeEmpty(repos);
     removeEmpty(currentRepos);
@@ -68876,6 +68924,7 @@ async function repositories_apply(login, dryrun = true, repos) {
             }
         }
     });
+    logger.debug('diff', differences);
     if (differences.remove.length > 0 ||
         differences.update.length > 0 ||
         differences.members.length > 0 ||
@@ -68883,12 +68932,12 @@ async function repositories_apply(login, dryrun = true, repos) {
         logger.info(`Repos are out of sync, \n\trepos to be updated: ${differences.update.map((m) => m.name)} \n\trepos to be removed: ${differences.remove.map((m) => m.name)} \n\tmembers to be updated: ${differences.members.map((m) => m.repo)}, \n\tteams to be updated: ${differences.teams.map((m) => m.repo)}`);
         logger.verbose('diff', differences);
         if (!dryrun) {
-            logger.info('Applying changes to repos');
+            logger.verbose('Applying changes to repos');
             // todo: apply changes
             return repos;
         }
         else {
-            logger.info('Dry run, not applying changes');
+            logger.verbose('Dry run, not applying changes');
             return repos;
         }
     }
@@ -68917,13 +68966,13 @@ function removeEmpty(obj) {
     return obj;
 }
 const init = async (gops, organization, configFile) => {
-    logger.info('Initializing gops.yml');
+    logger.verbose('Running init');
     gops.org = await get(organization);
     gops.members = await members_get(organization);
     gops.teams = await teams_get(organization);
     gops.repos = await repositories_get(organization);
     removeEmpty(gops);
-    logger.info(`Writing gops.yml at path '${configFile}'`);
+    logger.verbose(`Writing gops.yml at path '${configFile}'`);
     external_fs_.writeFileSync(configFile, js_yaml.dump(gops), { encoding: 'utf8' });
     logger.debug('gops.yml written');
     return gops;
@@ -68932,7 +68981,7 @@ const init = async (gops, organization, configFile) => {
  * Validate the gops.yml file against the schema
  */
 const validate = async (gops) => {
-    logger.info('Validating gops.yml');
+    logger.verbose('Running validation');
     const ajv = new dist_ajv();
     const schema = JSON.parse(external_fs_.readFileSync('gops-schema.json', { encoding: 'utf8' }));
     const validate = ajv.compile(schema);
@@ -68945,7 +68994,7 @@ const validate = async (gops) => {
     return valid;
 };
 const gops_apply = async (gops, organization, dryRun = true) => {
-    logger.info(`${dryRun ? 'Dry-running' : 'Applying'} gops.yml`);
+    logger.verbose(`Running ${dryRun ? 'Dry-run' : 'Apply'}`);
     let updated = { org: {}, members: [], teams: [], repos: [] };
     // handle changes
     updated.org = await apply(organization, dryRun, gops.org);
@@ -68955,10 +69004,10 @@ const gops_apply = async (gops, organization, dryRun = true) => {
     return updated;
 };
 const run = async (org, cmd, configFile) => {
-    logger.info(`Running gops with org '${org}' and command '${cmd}' and configFile '${configFile}'!`);
+    logger.verbose(`Running gops with org '${org}' and command '${cmd}' and configFile '${configFile}'!`);
     const gops = js_yaml.load(external_fs_.readFileSync(configFile, { encoding: 'utf8' })) || {};
     logger.debug(`Gops config file read successfully!`);
-    logger.silly(JSON.stringify(gops));
+    logger.silly('Gops config content', gops);
     let output = { org: org, errors: [] };
     try {
         switch (cmd) {
@@ -68981,7 +69030,7 @@ const run = async (org, cmd, configFile) => {
     catch (err) {
         output.errors?.push(err);
     }
-    logger.verbose(`Output ${JSON.stringify(output)}`);
+    logger.verbose('Output', output);
     return output;
 };
 
