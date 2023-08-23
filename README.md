@@ -17,11 +17,11 @@ This action is used to administer a GitHub organization. You can manage users, t
 
 ### `organization`
 
-**Required** The name of your GitHub organization to apply the changes to.
+**Required** The name of your GitHub organization to apply the changes to. Default `${{ github.repository_owner }}`.
 
 ### `github-token`
 
-**Required** The credentials to use to apply changes to orginisation. Default `GITHUB_TOKEN`.
+**Required** The credentials to use to apply changes to organization. Default `GITHUB_TOKEN`.
 
 ## Example usage
 
