@@ -1,7 +1,7 @@
-import { getOrg } from './octokit';
-import { logger } from './logger';
+import { getOrg } from './octokit.js';
+import { logger } from './logger.js';
 import diff from 'deep-diff';
-import { removeEmpty } from './gops';
+import { removeEmpty } from './gops.js';
 
 export interface Organization {
   billing_email?: string;

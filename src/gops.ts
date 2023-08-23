@@ -1,15 +1,15 @@
 import fs from 'fs';
 import yaml from 'js-yaml';
-import { Organization } from './organizations';
-import { Member } from './members';
-import { Team } from './teams';
-import { Repository } from './repositories';
-import { get as getOrg, apply as applyOrg } from './organizations';
-import { get as getOrgMembers, apply as applyMembers } from './members';
-import { get as getOrgTeams, apply as applyTeams } from './teams';
-import { get as getOrgRepos, apply as applyRepos } from './repositories';
+import { Organization } from './organizations.js';
+import { Member } from './members.js';
+import { Team } from './teams.js';
+import { Repository } from './repositories.js';
+import { get as getOrg, apply as applyOrg } from './organizations.js';
+import { get as getOrgMembers, apply as applyMembers } from './members.js';
+import { get as getOrgTeams, apply as applyTeams } from './teams.js';
+import { get as getOrgRepos, apply as applyRepos } from './repositories.js';
 import Ajv, { ValidationError } from 'ajv';
-import { logger } from './logger';
+import { logger } from './logger.js';
 
 export interface Gops {
   org: Organization;

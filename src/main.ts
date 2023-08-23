@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import core from '@actions/core';
-import { run } from './gops';
+import { run } from './gops.js';
 
 const organization: string = core.getInput('organization');
 if (!organization) core.setFailed('Organization is required!');

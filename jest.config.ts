@@ -13,7 +13,10 @@ const config: Config.InitialOptions = {
     ]
   },
   verbose: true,
-  preset: 'ts-jest/presets/default-esm'
+  preset: 'ts-jest/presets/default-esm',
+  moduleNameMapper: {
+    '^(\\.\\.?\\/.+)\\.js$': '$1'
+  }
 };
 
 export default config;
