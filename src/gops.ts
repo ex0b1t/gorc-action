@@ -29,6 +29,7 @@ export function removeEmpty(obj: any) {
 const gops: Gops = yaml.load(fs.readFileSync('.github/gops.yml', { encoding: 'utf8' })) as Gops;
 
 export const init = async (organization: string) => {
+  logger.info('Initializing gops.yml');
   gops.org = await getOrg(organization);
   gops.members = await getOrgMembers(organization);
   gops.teams = await getOrgTeams(organization);
@@ -44,6 +45,7 @@ export const init = async (organization: string) => {
  * Validate the gops.yml file against the schema
  */
 export const validate = async (): Promise<boolean> => {
+  logger.info('Validating gops.yml');
   const ajv = new Ajv();
   const schema = JSON.parse(fs.readFileSync('gops-schema.json', { encoding: 'utf8' }));
   const validate = ajv.compile(schema);

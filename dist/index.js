@@ -75445,6 +75445,7 @@ function removeEmpty(obj) {
 }
 const gops = js_yaml.load(external_fs_.readFileSync('.github/gops.yml', { encoding: 'utf8' }));
 const init = async (organization) => {
+    logger/* logger.info */.k.info('Initializing gops.yml');
     gops.org = await get(organization);
     gops.members = await members_get(organization);
     gops.teams = await teams_get(organization);
@@ -75458,6 +75459,7 @@ const init = async (organization) => {
  * Validate the gops.yml file against the schema
  */
 const validate = async () => {
+    logger/* logger.info */.k.info('Validating gops.yml');
     const ajv = new dist_ajv();
     const schema = JSON.parse(external_fs_.readFileSync('gops-schema.json', { encoding: 'utf8' }));
     const validate = ajv.compile(schema);
@@ -75496,7 +75498,7 @@ const gops_apply = async (organization, dryRun = true) => {
 
 dotenv__WEBPACK_IMPORTED_MODULE_1__.config();
 const logger = winston__WEBPACK_IMPORTED_MODULE_0__.createLogger({
-    level: process.env.LOG_LEVEL || 'info',
+    level: process.env.LOG_LEVEL || 'verbose',
     transports: [
         new winston__WEBPACK_IMPORTED_MODULE_0__.transports.Console({
             format: winston__WEBPACK_IMPORTED_MODULE_0__.format.simple()
