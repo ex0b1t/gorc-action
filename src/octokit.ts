@@ -1,14 +1,6 @@
-import dotenv from 'dotenv';
-
-dotenv.config();
-
 import { Octokit } from 'octokit';
 
-const octokit = new Octokit({
-  auth: process.env.GITHUB_TOKEN
-});
-
-export const getOrg = async (org: string) => {
+export const getOrg = async (octokit: Octokit, org: string) => {
   return octokit.request('GET /orgs/{org}', {
     org: org,
     headers: {
@@ -17,7 +9,7 @@ export const getOrg = async (org: string) => {
   });
 };
 
-export const getOrgMembers = async (org: string, role: 'all' | 'admin' | 'member' = 'all') => {
+export const getOrgMembers = async (octokit: Octokit, org: string, role: 'all' | 'admin' | 'member' = 'all') => {
   return await octokit
     .paginate('GET /orgs/{org}/members?role={role}', {
       org: org,
@@ -29,7 +21,7 @@ export const getOrgMembers = async (org: string, role: 'all' | 'admin' | 'member
     });
 };
 
-export const getOrgCollaborators = async (org: string) => {
+export const getOrgCollaborators = async (octokit: Octokit, org: string) => {
   return await octokit
     .paginate('GET /orgs/{org}/outside_collaborators', {
       org: org,
@@ -40,7 +32,7 @@ export const getOrgCollaborators = async (org: string) => {
     });
 };
 
-export const getUser = async (username: string) => {
+export const getUser = async (octokit: Octokit, username: string) => {
   return await octokit
     .request('GET /users/{username}', {
       username: username
@@ -50,14 +42,14 @@ export const getUser = async (username: string) => {
     });
 };
 
-export const getOrgTeams = async (org: string) => {
+export const getOrgTeams = async (octokit: Octokit, org: string) => {
   return await octokit.paginate('GET /orgs/{org}/teams', {
     org: org,
     per_page: 100
   });
 };
 
-export const getTeamMembers = async (org: string, slug: string, role: string = 'all') => {
+export const getTeamMembers = async (octokit: Octokit, org: string, slug: string, role: string = 'all') => {
   return await octokit
     .paginate('GET /orgs/{org}/teams/{slug}/members?role={role}', {
       org: org,
@@ -70,7 +62,7 @@ export const getTeamMembers = async (org: string, slug: string, role: string = '
     });
 };
 
-export const getOrgRepos = async (org: string) => {
+export const getOrgRepos = async (octokit: Octokit, org: string) => {
   return await octokit
     .paginate('GET /orgs/{org}/repos', {
       org: org,
@@ -82,6 +74,7 @@ export const getOrgRepos = async (org: string) => {
 };
 
 export const getRepoCollaborators = async (
+  octokit: Octokit,
   owner: string,
   repo: string,
   affiliation: 'all' | 'direct' | 'outside' = 'direct'
@@ -98,7 +91,7 @@ export const getRepoCollaborators = async (
     });
 };
 
-export const getRepoTeams = async (owner: string, repo: string) => {
+export const getRepoTeams = async (octokit: Octokit, owner: string, repo: string) => {
   return await octokit
     .paginate('GET /repos/{owner}/{repo}/teams', {
       owner: owner,

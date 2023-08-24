@@ -1,6 +1,7 @@
 import { getOrgRepos, getRepoCollaborators, getRepoTeams } from './octokit.js';
 import { logger } from './logger.js';
 import { removeEmpty } from './gops.js';
+import { Octokit } from 'octokit';
 
 export interface Repository {
   name: string;
@@ -24,9 +25,9 @@ export interface Repository {
   }[];
 }
 
-export async function get(login: string): Promise<Repository[]> {
+export async function get(octokit: Octokit, login: string): Promise<Repository[]> {
   logger.verbose(`Getting repos for ${login}`);
-  const repos = (await getOrgRepos(login)) as any[];
+  const repos = (await getOrgRepos(octokit, login)) as any[];
   return Promise.all(
     repos.map(async (repo) => ({
       name: repo.name,
@@ -40,11 +41,11 @@ export async function get(login: string): Promise<Repository[]> {
       allow_squash_merge: repo.allow_squash_merge,
       allow_merge_commit: repo.allow_merge_commit,
       delete_branch_on_merge: repo.delete_branch_on_merge,
-      members: ((await getRepoCollaborators(login, repo.name)) as any[]).map((member) => ({
+      members: ((await getRepoCollaborators(octokit, login, repo.name)) as any[]).map((member) => ({
         login: member.login,
         permission: member.role_name
       })),
-      teams: ((await getRepoTeams(login, repo.name)) as any[]).map((repo) => ({
+      teams: ((await getRepoTeams(octokit, login, repo.name)) as any[]).map((repo) => ({
         slug: repo.slug,
         permission: repo.permission
       }))
@@ -52,9 +53,14 @@ export async function get(login: string): Promise<Repository[]> {
   );
 }
 
-export async function apply(login: string, dryrun: boolean = true, repos: Repository[]): Promise<Repository[]> {
+export async function apply(
+  octokit: Octokit,
+  login: string,
+  dryrun: boolean = true,
+  repos: Repository[]
+): Promise<Repository[]> {
   logger.verbose(`Applying repos for ${login} dryrun ${dryrun}`);
-  const currentRepos = await get(login);
+  const currentRepos = await get(octokit, login);
   removeEmpty(repos);
   removeEmpty(currentRepos);
   logger.silly('currentRepos', currentRepos);

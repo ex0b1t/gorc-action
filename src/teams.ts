@@ -2,6 +2,7 @@ import { getOrgTeams, getTeamMembers } from './octokit.js';
 import { Member } from './members.js';
 import { logger } from './logger.js';
 import { removeEmpty } from './gops.js';
+import { Octokit } from 'octokit';
 
 export interface Team {
   slug: string;
@@ -12,9 +13,9 @@ export interface Team {
   members?: Member[];
 }
 
-export async function get(login: string): Promise<Team[]> {
+export async function get(octokit: Octokit, login: string): Promise<Team[]> {
   logger.verbose(`Getting teams for ${login}`);
-  const teams = (await getOrgTeams(login)) as any[];
+  const teams = (await getOrgTeams(octokit, login)) as any[];
   return Promise.all(
     teams.map(async (team) => ({
       slug: team.slug,
@@ -23,11 +24,11 @@ export async function get(login: string): Promise<Team[]> {
       privacy: team.privacy,
       parent: team.parent?.slug,
       members: [
-        ...((await getTeamMembers(login, team.slug, 'member')) as any[]).map((member) => ({
+        ...((await getTeamMembers(octokit, login, team.slug, 'member')) as any[]).map((member) => ({
           login: member.login,
           role: 'member'
         })),
-        ...((await getTeamMembers(login, team.slug, 'maintainer')) as any[]).map((member) => ({
+        ...((await getTeamMembers(octokit, login, team.slug, 'maintainer')) as any[]).map((member) => ({
           login: member.login,
           role: 'maintainer'
         }))
@@ -36,9 +37,9 @@ export async function get(login: string): Promise<Team[]> {
   );
 }
 
-export async function apply(login: string, dryrun: boolean = true, teams: Team[]): Promise<Team[]> {
+export async function apply(octokit: Octokit, login: string, dryrun: boolean = true, teams: Team[]): Promise<Team[]> {
   logger.verbose(`Applying teams for ${login} dryrun ${dryrun}`);
-  const currentTeams = await get(login);
+  const currentTeams = await get(octokit, login);
   removeEmpty(teams);
   removeEmpty(currentTeams);
   logger.silly('currentTeams', currentTeams);

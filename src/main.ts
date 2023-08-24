@@ -11,9 +11,11 @@ const command: string = core.getInput('command');
 if (!command) core.setFailed('Command is required!');
 const configFile: string = core.getInput('gops-config');
 if (!configFile) core.setFailed('Gops config is required!');
+const githubToken: string = core.getInput('github-token');
+if (!githubToken) core.setFailed('GitHub Token is required!');
 
 try {
-  const output = await run(organization, command, configFile);
+  const output = await run(organization, command, configFile, githubToken);
 
   core.setOutput('org', organization);
   core.setOutput('command', command);

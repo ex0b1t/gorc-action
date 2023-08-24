@@ -1,17 +1,18 @@
 import { getOrgCollaborators, getOrgMembers } from './octokit.js';
 import { logger } from './logger.js';
 import { removeEmpty } from './gops.js';
+import { Octokit } from 'octokit';
 
 export interface Member {
   login: string;
   role: string;
 }
 
-export async function get(login: string): Promise<Member[]> {
+export async function get(octokit: Octokit, login: string): Promise<Member[]> {
   logger.verbose(`Getting members for ${login}`);
-  const admins = (await getOrgMembers(login, 'admin')) as any[];
-  const members = (await getOrgMembers(login, 'member')) as any[];
-  const collaborators = (await getOrgCollaborators(login)) as any[];
+  const admins = (await getOrgMembers(octokit, login, 'admin')) as any[];
+  const members = (await getOrgMembers(octokit, login, 'member')) as any[];
+  const collaborators = (await getOrgCollaborators(octokit, login)) as any[];
   return Promise.all([
     ...admins.map(async (member) => ({
       login: member.login,
@@ -28,9 +29,14 @@ export async function get(login: string): Promise<Member[]> {
   ]);
 }
 
-export async function apply(login: string, dryrun: boolean = true, members: Member[]): Promise<Member[]> {
+export async function apply(
+  octokit: Octokit,
+  login: string,
+  dryrun: boolean = true,
+  members: Member[]
+): Promise<Member[]> {
   logger.verbose(`Applying members for ${login} dryrun ${dryrun}`);
-  const currentMembers = await get(login);
+  const currentMembers = await get(octokit, login);
   removeEmpty(currentMembers);
   logger.silly('currentMembers', currentMembers);
 

@@ -12407,7 +12407,7 @@ var Webhooks = class {
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 
-const indentString = __nccwpck_require__(8043);
+const indentString = __nccwpck_require__(6665);
 const cleanStack = __nccwpck_require__(7972);
 
 const cleanInternalStack = stack => stack.replace(/\s+at .*aggregate-error\/index.js:\d+:\d+\)?/g, '');
@@ -24984,7 +24984,7 @@ module.exports = function name(fn) {
 
 /***/ }),
 
-/***/ 8043:
+/***/ 6665:
 /***/ ((module) => {
 
 
@@ -59870,7 +59870,7 @@ LegacyTransportStream.prototype.close = function close() {
 
 
 const logform = __nccwpck_require__(2955);
-const { warn } = __nccwpck_require__(2012);
+const { warn } = __nccwpck_require__(8043);
 
 /**
  * Expose version. Use `require` method for `webpack` support.
@@ -60044,7 +60044,7 @@ warn.forProperties(exports, 'deprecated', ['emitErrs', 'levelLength']);
 
 /***/ }),
 
-/***/ 2012:
+/***/ 8043:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 /**
@@ -60708,7 +60708,7 @@ const ExceptionHandler = __nccwpck_require__(7891);
 const RejectionHandler = __nccwpck_require__(1080);
 const LegacyTransportStream = __nccwpck_require__(6201);
 const Profiler = __nccwpck_require__(6959);
-const { warn } = __nccwpck_require__(2012);
+const { warn } = __nccwpck_require__(8043);
 const config = __nccwpck_require__(4325);
 
 /**
@@ -68534,18 +68534,8 @@ var jsYaml = {
 /* harmony default export */ const js_yaml = (jsYaml);
 
 
-// EXTERNAL MODULE: ./node_modules/dotenv/lib/main.js
-var main = __nccwpck_require__(2437);
-// EXTERNAL MODULE: ./node_modules/octokit/dist-node/index.js
-var dist_node = __nccwpck_require__(7467);
 ;// CONCATENATED MODULE: ./lib/octokit.js
-
-main.config();
-
-const octokit = new dist_node.Octokit({
-    auth: process.env.GITHUB_TOKEN
-});
-const getOrg = async (org) => {
+const getOrg = async (octokit, org) => {
     return octokit.request('GET /orgs/{org}', {
         org: org,
         headers: {
@@ -68553,7 +68543,7 @@ const getOrg = async (org) => {
         }
     });
 };
-const getOrgMembers = async (org, role = 'all') => {
+const getOrgMembers = async (octokit, org, role = 'all') => {
     return await octokit
         .paginate('GET /orgs/{org}/members?role={role}', {
         org: org,
@@ -68564,7 +68554,7 @@ const getOrgMembers = async (org, role = 'all') => {
         throw error;
     });
 };
-const getOrgCollaborators = async (org) => {
+const getOrgCollaborators = async (octokit, org) => {
     return await octokit
         .paginate('GET /orgs/{org}/outside_collaborators', {
         org: org,
@@ -68574,7 +68564,7 @@ const getOrgCollaborators = async (org) => {
         throw error;
     });
 };
-const getUser = async (username) => {
+const getUser = async (octokit, username) => {
     return await octokit
         .request('GET /users/{username}', {
         username: username
@@ -68583,13 +68573,13 @@ const getUser = async (username) => {
         throw error;
     });
 };
-const getOrgTeams = async (org) => {
+const getOrgTeams = async (octokit, org) => {
     return await octokit.paginate('GET /orgs/{org}/teams', {
         org: org,
         per_page: 100
     });
 };
-const getTeamMembers = async (org, slug, role = 'all') => {
+const getTeamMembers = async (octokit, org, slug, role = 'all') => {
     return await octokit
         .paginate('GET /orgs/{org}/teams/{slug}/members?role={role}', {
         org: org,
@@ -68601,7 +68591,7 @@ const getTeamMembers = async (org, slug, role = 'all') => {
         throw error;
     });
 };
-const getOrgRepos = async (org) => {
+const getOrgRepos = async (octokit, org) => {
     return await octokit
         .paginate('GET /orgs/{org}/repos', {
         org: org,
@@ -68611,7 +68601,7 @@ const getOrgRepos = async (org) => {
         throw error;
     });
 };
-const getRepoCollaborators = async (owner, repo, affiliation = 'direct') => {
+const getRepoCollaborators = async (octokit, owner, repo, affiliation = 'direct') => {
     return await octokit
         .paginate('GET /repos/{owner}/{repo}/collaborators?affiliation={affiliation}', {
         owner: owner,
@@ -68623,7 +68613,7 @@ const getRepoCollaborators = async (owner, repo, affiliation = 'direct') => {
         throw error;
     });
 };
-const getRepoTeams = async (owner, repo) => {
+const getRepoTeams = async (octokit, owner, repo) => {
     return await octokit
         .paginate('GET /repos/{owner}/{repo}/teams', {
         owner: owner,
@@ -68637,6 +68627,8 @@ const getRepoTeams = async (owner, repo) => {
 
 // EXTERNAL MODULE: ./node_modules/winston/lib/winston.js
 var winston = __nccwpck_require__(4158);
+// EXTERNAL MODULE: ./node_modules/dotenv/lib/main.js
+var main = __nccwpck_require__(2437);
 ;// CONCATENATED MODULE: ./lib/logger.js
 
 
@@ -68659,10 +68651,10 @@ var deep_diff = __nccwpck_require__(3426);
 
 
 
-async function get(login) {
+async function get(octokit, login) {
     logger.verbose(`Getting org ${login}`);
     try {
-        const { data: org } = await getOrg(login);
+        const { data: org } = await getOrg(octokit, login);
         logger.silly('org', org);
         return {
             billing_email: org.billing_email,
@@ -68691,9 +68683,9 @@ async function get(login) {
         throw error;
     }
 }
-async function apply(login, dryrun = true, org) {
+async function apply(octokit, login, dryrun = true, org) {
     logger.verbose(`Applying org ${login} dryrun ${dryrun}`);
-    const currentOrg = await get(login);
+    const currentOrg = await get(octokit, login);
     removeEmpty(currentOrg);
     const differences = deep_diff(currentOrg, org);
     logger.debug('diff', differences);
@@ -68720,11 +68712,11 @@ async function apply(login, dryrun = true, org) {
 
 
 
-async function members_get(login) {
+async function members_get(octokit, login) {
     logger.verbose(`Getting members for ${login}`);
-    const admins = (await getOrgMembers(login, 'admin'));
-    const members = (await getOrgMembers(login, 'member'));
-    const collaborators = (await getOrgCollaborators(login));
+    const admins = (await getOrgMembers(octokit, login, 'admin'));
+    const members = (await getOrgMembers(octokit, login, 'member'));
+    const collaborators = (await getOrgCollaborators(octokit, login));
     return Promise.all([
         ...admins.map(async (member) => ({
             login: member.login,
@@ -68740,9 +68732,9 @@ async function members_get(login) {
         }))
     ]);
 }
-async function members_apply(login, dryrun = true, members) {
+async function members_apply(octokit, login, dryrun = true, members) {
     logger.verbose(`Applying members for ${login} dryrun ${dryrun}`);
-    const currentMembers = await members_get(login);
+    const currentMembers = await members_get(octokit, login);
     removeEmpty(currentMembers);
     logger.silly('currentMembers', currentMembers);
     const same = (a, b) => a.login === b.login && a.role === b.role;
@@ -68776,9 +68768,9 @@ async function members_apply(login, dryrun = true, members) {
 
 
 
-async function teams_get(login) {
+async function teams_get(octokit, login) {
     logger.verbose(`Getting teams for ${login}`);
-    const teams = (await getOrgTeams(login));
+    const teams = (await getOrgTeams(octokit, login));
     return Promise.all(teams.map(async (team) => ({
         slug: team.slug,
         name: team.name,
@@ -68786,20 +68778,20 @@ async function teams_get(login) {
         privacy: team.privacy,
         parent: team.parent?.slug,
         members: [
-            ...(await getTeamMembers(login, team.slug, 'member')).map((member) => ({
+            ...(await getTeamMembers(octokit, login, team.slug, 'member')).map((member) => ({
                 login: member.login,
                 role: 'member'
             })),
-            ...(await getTeamMembers(login, team.slug, 'maintainer')).map((member) => ({
+            ...(await getTeamMembers(octokit, login, team.slug, 'maintainer')).map((member) => ({
                 login: member.login,
                 role: 'maintainer'
             }))
         ]
     })));
 }
-async function teams_apply(login, dryrun = true, teams) {
+async function teams_apply(octokit, login, dryrun = true, teams) {
     logger.verbose(`Applying teams for ${login} dryrun ${dryrun}`);
-    const currentTeams = await teams_get(login);
+    const currentTeams = await teams_get(octokit, login);
     removeEmpty(teams);
     removeEmpty(currentTeams);
     logger.silly('currentTeams', currentTeams);
@@ -68849,9 +68841,9 @@ async function teams_apply(login, dryrun = true, teams) {
 
 
 
-async function repositories_get(login) {
+async function repositories_get(octokit, login) {
     logger.verbose(`Getting repos for ${login}`);
-    const repos = (await getOrgRepos(login));
+    const repos = (await getOrgRepos(octokit, login));
     return Promise.all(repos.map(async (repo) => ({
         name: repo.name,
         description: repo.description,
@@ -68864,19 +68856,19 @@ async function repositories_get(login) {
         allow_squash_merge: repo.allow_squash_merge,
         allow_merge_commit: repo.allow_merge_commit,
         delete_branch_on_merge: repo.delete_branch_on_merge,
-        members: (await getRepoCollaborators(login, repo.name)).map((member) => ({
+        members: (await getRepoCollaborators(octokit, login, repo.name)).map((member) => ({
             login: member.login,
             permission: member.role_name
         })),
-        teams: (await getRepoTeams(login, repo.name)).map((repo) => ({
+        teams: (await getRepoTeams(octokit, login, repo.name)).map((repo) => ({
             slug: repo.slug,
             permission: repo.permission
         }))
     })));
 }
-async function repositories_apply(login, dryrun = true, repos) {
+async function repositories_apply(octokit, login, dryrun = true, repos) {
     logger.verbose(`Applying repos for ${login} dryrun ${dryrun}`);
-    const currentRepos = await repositories_get(login);
+    const currentRepos = await repositories_get(octokit, login);
     removeEmpty(repos);
     removeEmpty(currentRepos);
     logger.silly('currentRepos', currentRepos);
@@ -68949,7 +68941,10 @@ async function repositories_apply(login, dryrun = true, repos) {
 
 // EXTERNAL MODULE: ./node_modules/ajv/dist/ajv.js
 var dist_ajv = __nccwpck_require__(2426);
+// EXTERNAL MODULE: ./node_modules/octokit/dist-node/index.js
+var dist_node = __nccwpck_require__(7467);
 ;// CONCATENATED MODULE: ./lib/gops.js
+
 
 
 
@@ -68965,12 +68960,12 @@ function removeEmpty(obj) {
     });
     return obj;
 }
-const init = async (gops, organization, configFile) => {
+const init = async (octokit, gops, organization, configFile) => {
     logger.verbose('Running init');
-    gops.org = await get(organization);
-    gops.members = await members_get(organization);
-    gops.teams = await teams_get(organization);
-    gops.repos = await repositories_get(organization);
+    gops.org = await get(octokit, organization);
+    gops.members = await members_get(octokit, organization);
+    gops.teams = await teams_get(octokit, organization);
+    gops.repos = await repositories_get(octokit, organization);
     removeEmpty(gops);
     logger.verbose(`Writing gops.yml at path '${configFile}'`);
     external_fs_.writeFileSync(configFile, js_yaml.dump(gops), { encoding: 'utf8' });
@@ -68980,7 +68975,7 @@ const init = async (gops, organization, configFile) => {
 /**
  * Validate the gops.yml file against the schema
  */
-const validate = async (gops) => {
+const validate = async (octokit, gops) => {
     logger.verbose('Running validation');
     const ajv = new dist_ajv();
     const schema = JSON.parse(external_fs_.readFileSync('gops-schema.json', { encoding: 'utf8' }));
@@ -68993,35 +68988,39 @@ const validate = async (gops) => {
     logger.info(`Gops config is ${valid ? 'valid' : 'invalid'}}`);
     return valid;
 };
-const gops_apply = async (gops, organization, dryRun = true) => {
+const gops_apply = async (octokit, gops, organization, dryRun = true) => {
     logger.verbose(`Running ${dryRun ? 'Dry-run' : 'Apply'}`);
     let updated = { org: {}, members: [], teams: [], repos: [] };
     // handle changes
-    updated.org = await apply(organization, dryRun, gops.org);
-    updated.members = await members_apply(organization, dryRun, gops.members);
-    updated.teams = await teams_apply(organization, dryRun, gops.teams);
-    updated.repos = await repositories_apply(organization, dryRun, gops.repos);
+    updated.org = await apply(octokit, organization, dryRun, gops.org);
+    updated.members = await members_apply(octokit, organization, dryRun, gops.members);
+    updated.teams = await teams_apply(octokit, organization, dryRun, gops.teams);
+    updated.repos = await repositories_apply(octokit, organization, dryRun, gops.repos);
     return updated;
 };
-const run = async (org, cmd, configFile) => {
+const run = async (org, cmd, configFile, githubToken) => {
     logger.verbose(`Running gops with org '${org}' and command '${cmd}' and configFile '${configFile}'!`);
     const gops = js_yaml.load(external_fs_.readFileSync(configFile, { encoding: 'utf8' })) || {};
     logger.debug(`Gops config file read successfully!`);
     logger.silly('Gops config content', gops);
+    const octokit = new dist_node.Octokit({
+        auth: githubToken
+    });
+    logger.debug(`Octokit created successfully!`);
     let output = { org: org, errors: [] };
     try {
         switch (cmd) {
             case 'init':
-                output.gops = await init(gops, org, configFile);
+                output.gops = await init(octokit, gops, org, configFile);
                 break;
             case 'validate':
-                output.valid = await validate(gops);
+                output.valid = await validate(octokit, gops);
                 break;
             case 'dry-run':
-                output.gops = await gops_apply(gops, org, true);
+                output.gops = await gops_apply(octokit, gops, org, true);
                 break;
             case 'apply':
-                output.gops = await gops_apply(gops, org, false);
+                output.gops = await gops_apply(octokit, gops, org, false);
                 break;
             default:
                 output.errors?.push(new Error(`Unknown command ${cmd}`));
@@ -69030,7 +69029,7 @@ const run = async (org, cmd, configFile) => {
     catch (err) {
         output.errors?.push(err);
     }
-    logger.verbose('Output', output);
+    logger.debug('Output', output);
     return output;
 };
 
@@ -69057,8 +69056,11 @@ if (!command)
 const configFile = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('gops-config');
 if (!configFile)
     _actions_core__WEBPACK_IMPORTED_MODULE_1__.setFailed('Gops config is required!');
+const githubToken = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('github-token');
+if (!githubToken)
+    _actions_core__WEBPACK_IMPORTED_MODULE_1__.setFailed('GitHub Token is required!');
 try {
-    const output = await (0,_gops_js__WEBPACK_IMPORTED_MODULE_2__/* .run */ .KH)(organization, command, configFile);
+    const output = await (0,_gops_js__WEBPACK_IMPORTED_MODULE_2__/* .run */ .KH)(organization, command, configFile, githubToken);
     _actions_core__WEBPACK_IMPORTED_MODULE_1__.setOutput('org', organization);
     _actions_core__WEBPACK_IMPORTED_MODULE_1__.setOutput('command', command);
     _actions_core__WEBPACK_IMPORTED_MODULE_1__.setOutput('gops', output.gops);

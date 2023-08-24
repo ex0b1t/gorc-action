@@ -2,6 +2,7 @@ import { getOrg } from './octokit.js';
 import { logger } from './logger.js';
 import diff from 'deep-diff';
 import { removeEmpty } from './gops.js';
+import { Octokit } from 'octokit';
 
 export interface Organization {
   billing_email?: string;
@@ -25,10 +26,10 @@ export interface Organization {
   web_commit_signoff_required?: boolean;
 }
 
-export async function get(login: string): Promise<Organization> {
+export async function get(octokit: Octokit, login: string): Promise<Organization> {
   logger.verbose(`Getting org ${login}`);
   try {
-    const { data: org } = await getOrg(login);
+    const { data: org } = await getOrg(octokit, login);
     logger.silly('org', org);
     return {
       billing_email: org.billing_email,
@@ -57,9 +58,14 @@ export async function get(login: string): Promise<Organization> {
   }
 }
 
-export async function apply(login: string, dryrun: boolean = true, org: Organization): Promise<Organization> {
+export async function apply(
+  octokit: Octokit,
+  login: string,
+  dryrun: boolean = true,
+  org: Organization
+): Promise<Organization> {
   logger.verbose(`Applying org ${login} dryrun ${dryrun}`);
-  const currentOrg = await get(login);
+  const currentOrg = await get(octokit, login);
   removeEmpty(currentOrg);
   const differences = diff(currentOrg, org);
   logger.debug('diff', differences);
