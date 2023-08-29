@@ -69047,18 +69047,10 @@ __nccwpck_require__.a(__webpack_module__, async (__webpack_handle_async_dependen
 dotenv__WEBPACK_IMPORTED_MODULE_0__.config();
 
 
-const organization = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('organization');
-if (!organization)
-    _actions_core__WEBPACK_IMPORTED_MODULE_1__.setFailed('Organization is required!');
-const command = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('command');
-if (!command)
-    _actions_core__WEBPACK_IMPORTED_MODULE_1__.setFailed('Command is required!');
-const configFile = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('gops-config');
-if (!configFile)
-    _actions_core__WEBPACK_IMPORTED_MODULE_1__.setFailed('Gops config is required!');
-const githubToken = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('github-token');
-if (!githubToken)
-    _actions_core__WEBPACK_IMPORTED_MODULE_1__.setFailed('GitHub Token is required!');
+const organization = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('organization', { required: true });
+const command = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('command', { required: true });
+const configFile = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('gops-config', { required: true });
+const githubToken = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('github-token', { required: true });
 try {
     const output = await (0,_gops_js__WEBPACK_IMPORTED_MODULE_2__/* .run */ .KH)(organization, command, configFile, githubToken);
     _actions_core__WEBPACK_IMPORTED_MODULE_1__.setOutput('org', organization);

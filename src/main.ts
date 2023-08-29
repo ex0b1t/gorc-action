@@ -5,14 +5,10 @@ dotenv.config();
 import core from '@actions/core';
 import { run } from './gops.js';
 
-const organization: string = core.getInput('organization');
-if (!organization) core.setFailed('Organization is required!');
-const command: string = core.getInput('command');
-if (!command) core.setFailed('Command is required!');
-const configFile: string = core.getInput('gops-config');
-if (!configFile) core.setFailed('Gops config is required!');
-const githubToken: string = core.getInput('github-token');
-if (!githubToken) core.setFailed('GitHub Token is required!');
+const organization: string = core.getInput('organization', { required: true });
+const command: string = core.getInput('command', { required: true });
+const configFile: string = core.getInput('gops-config', { required: true });
+const githubToken: string = core.getInput('github-token', { required: true });
 
 try {
   const output = await run(organization, command, configFile, githubToken);
