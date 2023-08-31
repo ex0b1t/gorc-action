@@ -1,7 +1,6 @@
-import { getOrgTeams, getTeamMembers } from './octokit.js';
 import { Member } from './members.js';
 import { logger } from './logger.js';
-import { removeEmpty } from './gops.js';
+import { Behaviors, removeEmpty } from './gops.js';
 import { Octokit } from 'octokit';
 
 export interface Team {
@@ -12,6 +11,26 @@ export interface Team {
   parent?: string;
   members?: Member[];
 }
+
+const getOrgTeams = async (octokit: Octokit, org: string) => {
+  return await octokit.paginate('GET /orgs/{org}/teams', {
+    org: org,
+    per_page: 100
+  });
+};
+
+const getTeamMembers = async (octokit: Octokit, org: string, slug: string, role: string = 'all') => {
+  return await octokit
+    .paginate('GET /orgs/{org}/teams/{slug}/members?role={role}', {
+      org: org,
+      slug: slug,
+      role: role,
+      per_page: 100
+    })
+    .catch((error) => {
+      throw error;
+    });
+};
 
 export async function get(octokit: Octokit, login: string): Promise<Team[]> {
   logger.verbose(`Getting teams for ${login}`);
@@ -37,7 +56,13 @@ export async function get(octokit: Octokit, login: string): Promise<Team[]> {
   );
 }
 
-export async function apply(octokit: Octokit, login: string, dryrun: boolean = true, teams: Team[]): Promise<Team[]> {
+export async function apply(
+  octokit: Octokit,
+  login: string,
+  dryrun: boolean = true,
+  teams: Team[],
+  behaviours: Behaviors
+): Promise<Team[]> {
   logger.verbose(`Applying teams for ${login} dryrun ${dryrun}`);
   const currentTeams = await get(octokit, login);
   removeEmpty(teams);

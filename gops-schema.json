@@ -155,122 +155,27 @@
         "required": ["name", "privacy"]
       }
     },
-    "repos": {
-      "type": "array",
-      "description": "A list of repositories in the organization\n",
-      "items": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "description": "The name of the repository\n",
-            "type": "string"
-          },
-          "description": {
-            "description": "The description of the repository\n",
-            "type": "string"
-          },
-          "homepage": {
-            "description": "The homepage of the repository\n",
-            "type": "string"
-          },
-          "visibility": {
-            "description": "The visibility of the repository\n",
-            "type": "string",
-            "enum": ["public", "private"],
-            "default": "private"
-          },
-          "has_issues": {
-            "description": "Whether or not the repository has issues enabled\n",
-            "type": "boolean",
-            "default": true
-          },
-          "has_projects": {
-            "description": "Whether or not the repository has projects enabled\n",
-            "type": "boolean",
-            "default": true
-          },
-          "has_wiki": {
-            "description": "Whether or not the repository has wiki enabled\n",
-            "type": "boolean",
-            "default": true
-          },
-          "is_template": {
-            "description": "Whether or not the repository is a template\n",
-            "type": "boolean",
-            "default": false
-          },
-          "allow_squash_merge": {
-            "description": "Whether or not squash merging is allowed\n",
-            "type": "boolean",
-            "default": true
-          },
-          "allow_merge_commit": {
-            "description": "Whether or not merge commits are allowed\n",
-            "type": "boolean",
-            "default": false
-          },
-          "delete_branch_on_merge": {
-            "description": "Whether or not branches are deleted on merge\n",
-            "type": "boolean",
-            "default": true
-          },
-          "members": {
-            "description": "A list of members of the team\n",
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "login": {
-                  "description": "The username of the member\n",
-                  "type": "string"
-                },
-                "permission": {
-                  "description": "The permission of the repository\n",
-                  "type": "string",
-                  "enum": ["read", "triage", "write", "maintain", "admin"],
-                  "default": "read"
-                }
-              },
-              "required": ["login"]
-            }
-          }
-        },
-        "required": ["name"]
-      }
-    },
-    "checks": {
+    "behaviours": {
       "type": "object",
       "description": "A list of behaviours to apply to the organization\n",
       "properties": {
         "unknown_teams": {
           "description": "Behaviour to apply if an unknown teams is found\n",
           "type": "string",
-          "enum": ["delete", "warn"],
-          "default": "delete"
+          "enum": ["remove", "warn"],
+          "default": "remove"
         },
         "unknown_members": {
           "description": "Behaviour to apply if an unknown member is found\n",
           "type": "string",
-          "enum": ["delete", "convert_to_outside_collaborator", "warn"],
+          "enum": ["remove", "convert_to_outside_collaborator", "warn"],
           "default": "convert_to_outside_collaborator"
         },
-        "unknown_repositories": {
-          "description": "Behaviour to apply if an unknown repository is found\n",
+        "unknown_collaborator": {
+          "description": "Behaviour to apply if an unknown member is found\n",
           "type": "string",
-          "enum": ["delete", "archive", "warn"],
-          "default": "archive"
-        },
-        "outside_collaborator_elevated_permissions": {
-          "description": "Behaviour to apply if an outside collaborator has elevated permissions\n",
-          "type": "string",
-          "enum": ["downgrade", "warn"],
-          "default": "downgrade"
-        },
-        "repository_direct_membership": {
-          "description": "Behaviour to apply if a repository has direct members\n",
-          "type": "string",
-          "enum": ["warn", "downgrade", "remove"],
-          "default": "remove"
+          "enum": ["remove", "warn"],
+          "default": "warn"
         }
       }
     }

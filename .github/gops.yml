@@ -25,12 +25,7 @@ teams:
     members:
       - login: ex0b1t
         role: maintainer
-repos:
-  - name: .github-private
-    visibility: private
-    has_issues: true
-    has_projects: true
-    has_wiki: false
-    is_template: false
-    members: []
-    teams: []
+behaviours:
+  unknown_teams: remove
+  unknown_members: convert_to_outside_collaborator
+  unknown_collaborator: warn

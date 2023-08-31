@@ -3,20 +3,23 @@ import yaml from 'js-yaml';
 import { Organization } from './organizations.js';
 import { Member } from './members.js';
 import { Team } from './teams.js';
-import { Repository } from './repositories.js';
 import { get as getOrg, apply as applyOrg } from './organizations.js';
 import { get as getOrgMembers, apply as applyMembers } from './members.js';
 import { get as getOrgTeams, apply as applyTeams } from './teams.js';
-import { get as getOrgRepos, apply as applyRepos } from './repositories.js';
 import Ajv, { ValidationError } from 'ajv';
 import { logger } from './logger.js';
 import { Octokit } from 'octokit';
 
+export interface Behaviors {
+  unknown_teams: 'remove' | 'warn';
+  unknown_members: 'remove' | 'warn' | 'convert_to_outside_collaborator';
+  unknown_collaborators: 'remove' | 'warn';
+}
 export interface Gops {
   org: Organization;
   members: Member[];
   teams: Team[];
-  repos: Repository[];
+  behaviours: Behaviors;
 }
 
 export function removeEmpty(obj: any) {
@@ -32,7 +35,6 @@ export const init = async (octokit: Octokit, gops: Gops, organization: string, c
   gops.org = await getOrg(octokit, organization);
   gops.members = await getOrgMembers(octokit, organization);
   gops.teams = await getOrgTeams(octokit, organization);
-  gops.repos = await getOrgRepos(octokit, organization);
 
   removeEmpty(gops);
   logger.verbose(`Writing gops.yml at path '${configFile}'`);
@@ -62,13 +64,12 @@ export const validate = async (octokit: Octokit, gops: Gops): Promise<boolean> =
 
 export const apply = async (octokit: Octokit, gops: Gops, organization: string, dryRun = true): Promise<Gops> => {
   logger.verbose(`Running ${dryRun ? 'Dry-run' : 'Apply'}`);
-  let updated: Gops = { org: {}, members: [], teams: [], repos: [] };
+  let updated: Gops = { org: {}, members: [], teams: [], behaviours: gops.behaviours };
 
   // handle changes
   updated.org = await applyOrg(octokit, organization, dryRun, gops.org);
-  updated.members = await applyMembers(octokit, organization, dryRun, gops.members);
-  updated.teams = await applyTeams(octokit, organization, dryRun, gops.teams);
-  updated.repos = await applyRepos(octokit, organization, dryRun, gops.repos);
+  updated.members = await applyMembers(octokit, organization, dryRun, gops.members, gops.behaviours);
+  updated.teams = await applyTeams(octokit, organization, dryRun, gops.teams, gops.behaviours);
 
   return updated;
 };

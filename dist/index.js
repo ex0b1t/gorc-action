@@ -64667,7 +64667,7 @@ exports.LRUCache = LRUCache;
 
 /***/ }),
 
-/***/ 1673:
+/***/ 186:
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
 
 
@@ -68534,97 +68534,6 @@ var jsYaml = {
 /* harmony default export */ const js_yaml = (jsYaml);
 
 
-;// CONCATENATED MODULE: ./lib/octokit.js
-const getOrg = async (octokit, org) => {
-    return octokit.request('GET /orgs/{org}', {
-        org: org,
-        headers: {
-            'X-GitHub-Api-Version': '2022-11-28'
-        }
-    });
-};
-const getOrgMembers = async (octokit, org, role = 'all') => {
-    return await octokit
-        .paginate('GET /orgs/{org}/members?role={role}', {
-        org: org,
-        role: role,
-        per_page: 100
-    })
-        .catch((error) => {
-        throw error;
-    });
-};
-const getOrgCollaborators = async (octokit, org) => {
-    return await octokit
-        .paginate('GET /orgs/{org}/outside_collaborators', {
-        org: org,
-        per_page: 100
-    })
-        .catch((error) => {
-        throw error;
-    });
-};
-const getUser = async (octokit, username) => {
-    return await octokit
-        .request('GET /users/{username}', {
-        username: username
-    })
-        .catch((error) => {
-        throw error;
-    });
-};
-const getOrgTeams = async (octokit, org) => {
-    return await octokit.paginate('GET /orgs/{org}/teams', {
-        org: org,
-        per_page: 100
-    });
-};
-const getTeamMembers = async (octokit, org, slug, role = 'all') => {
-    return await octokit
-        .paginate('GET /orgs/{org}/teams/{slug}/members?role={role}', {
-        org: org,
-        slug: slug,
-        role: role,
-        per_page: 100
-    })
-        .catch((error) => {
-        throw error;
-    });
-};
-const getOrgRepos = async (octokit, org) => {
-    return await octokit
-        .paginate('GET /orgs/{org}/repos', {
-        org: org,
-        per_page: 100
-    })
-        .catch((error) => {
-        throw error;
-    });
-};
-const getRepoCollaborators = async (octokit, owner, repo, affiliation = 'direct') => {
-    return await octokit
-        .paginate('GET /repos/{owner}/{repo}/collaborators?affiliation={affiliation}', {
-        owner: owner,
-        repo: repo,
-        affiliation: affiliation,
-        per_page: 100
-    })
-        .catch((error) => {
-        throw error;
-    });
-};
-const getRepoTeams = async (octokit, owner, repo) => {
-    return await octokit
-        .paginate('GET /repos/{owner}/{repo}/teams', {
-        owner: owner,
-        repo: repo,
-        per_page: 100
-    })
-        .catch((error) => {
-        throw error;
-    });
-};
-
 // EXTERNAL MODULE: ./node_modules/winston/lib/winston.js
 var winston = __nccwpck_require__(4158);
 // EXTERNAL MODULE: ./node_modules/dotenv/lib/main.js
@@ -68634,7 +68543,6 @@ var main = __nccwpck_require__(2437);
 
 main.config();
 const logLevel = process.env.LOG_LEVEL || 'debug';
-console.log('logLevel', logLevel);
 const logger = winston.createLogger({
     level: logLevel,
     transports: [
@@ -68650,40 +68558,56 @@ var deep_diff = __nccwpck_require__(3426);
 
 
 
-
-async function get(octokit, login) {
+const mapper = (org) => {
+    return {
+        billing_email: org.billing_email,
+        company: org.company,
+        email: org.email,
+        twitter_username: org.twitter_username,
+        location: org.location,
+        name: org.name,
+        description: org.description,
+        has_organization_projects: org.has_organization_projects,
+        has_repository_projects: org.has_repository_projects,
+        default_repository_permission: org.default_repository_permission,
+        members_can_create_repositories: org.members_can_create_repositories,
+        members_can_create_internal_repositories: org.members_can_create_internal_repositories,
+        members_can_create_private_repositories: org.members_can_create_private_repositories,
+        members_can_create_public_repositories: org.members_can_create_public_repositories,
+        members_can_create_pages: org.members_can_create_pages,
+        members_can_create_public_pages: org.members_can_create_public_pages,
+        members_can_create_private_pages: org.members_can_create_private_pages,
+        members_can_fork_private_repositories: org.members_can_fork_private_repositories,
+        web_commit_signoff_required: org.web_commit_signoff_required
+    };
+};
+const getOrg = async (octokit, org) => {
+    return octokit.request('GET /orgs/{org}', {
+        org: org,
+        headers: {
+            'X-GitHub-Api-Version': '2022-11-28'
+        }
+    });
+};
+const updateOrg = async (octokit, org, update) => {
+    return octokit.request('PATCH /orgs/{org}', {
+        org: org,
+        ...update
+    });
+};
+const get = async (octokit, login) => {
     logger.verbose(`Getting org ${login}`);
     try {
         const { data: org } = await getOrg(octokit, login);
         logger.silly('org', org);
-        return {
-            billing_email: org.billing_email,
-            company: org.company,
-            email: org.email,
-            twitter_username: org.twitter_username,
-            location: org.location,
-            name: org.name,
-            description: org.description,
-            has_organization_projects: org.has_organization_projects,
-            has_repository_projects: org.has_repository_projects,
-            default_repository_permission: org.default_repository_permission,
-            members_can_create_repositories: org.members_can_create_repositories,
-            members_can_create_internal_repositories: org.members_can_create_internal_repositories,
-            members_can_create_private_repositories: org.members_can_create_private_repositories,
-            members_can_create_public_repositories: org.members_can_create_public_repositories,
-            members_can_create_pages: org.members_can_create_pages,
-            members_can_create_public_pages: org.members_can_create_public_pages,
-            members_can_create_private_pages: org.members_can_create_private_pages,
-            members_can_fork_private_repositories: org.members_can_fork_private_repositories,
-            web_commit_signoff_required: org.web_commit_signoff_required
-        };
+        return mapper(org);
     }
     catch (error) {
         logger.error('Error getting org', error);
         throw error;
     }
-}
-async function apply(octokit, login, dryrun = true, org) {
+};
+const apply = async (octokit, login, dryrun = true, org) => {
     logger.verbose(`Applying org ${login} dryrun ${dryrun}`);
     const currentOrg = await get(octokit, login);
     removeEmpty(currentOrg);
@@ -68693,9 +68617,16 @@ async function apply(octokit, login, dryrun = true, org) {
         logger.info(`Org is out of sync, fields to be updated: ${differences.map((d) => d.path?.join('.')).join(', ')}`);
         logger.verbose('diff', differences);
         if (!dryrun) {
-            logger.verbose('Applying changes to org');
-            // todo: apply changes
-            return org;
+            logger.verbose(`Updating org ${login}`);
+            try {
+                const { data: updatedOrg } = await updateOrg(octokit, login, org);
+                logger.silly('updatedOrg', updatedOrg);
+                return mapper(updatedOrg);
+            }
+            catch (error) {
+                logger.error('Error updating org', error);
+                throw error;
+            }
         }
         else {
             logger.verbose('Dry run, not applying changes');
@@ -68706,12 +68637,73 @@ async function apply(octokit, login, dryrun = true, org) {
         logger.info('Org already in sync');
         return org;
     }
-}
+};
 
 ;// CONCATENATED MODULE: ./lib/members.js
 
 
-
+const getOrgMembers = async (octokit, org, role = 'all') => {
+    return await octokit
+        .paginate('GET /orgs/{org}/members?role={role}', {
+        org: org,
+        role: role,
+        per_page: 100
+    })
+        .catch((error) => {
+        throw error;
+    });
+};
+const removeOrgMember = async (octokit, org, username) => {
+    logger.verbose(`Removing member ${username} from ${org}`);
+    return await octokit.request("DELETE /orgs/{org}/members/{username}", {
+        org: org,
+        username: username
+    })
+        .catch((error) => {
+        throw error;
+    });
+};
+const updateOrgMember = async (octokit, org, username, role) => {
+    logger.verbose(`Updating member ${username} to ${role} in ${org}`);
+    return await octokit.request("PUT /orgs/{org}/memberships/{username}", {
+        org: org,
+        username: username,
+        role: role
+    })
+        .catch((error) => {
+        throw error;
+    });
+};
+const convertToOutsideCollaborator = async (octokit, org, username) => {
+    logger.verbose(`Converting member ${username} to outside collaborator in ${org}`);
+    return await octokit.request("PUT /orgs/{org}/outside_collaborators/{username}", {
+        org: org,
+        username: username
+    })
+        .catch((error) => {
+        throw error;
+    });
+};
+const removeOrgOutsideCollaborator = async (octokit, org, username) => {
+    logger.verbose(`Removing outside collaborator ${username} from ${org}`);
+    return await octokit.request("DELETE /orgs/{org}/outside_collaborators/{username}", {
+        org: org,
+        username: username
+    })
+        .catch((error) => {
+        throw error;
+    });
+};
+const getOrgCollaborators = async (octokit, org) => {
+    return await octokit
+        .paginate('GET /orgs/{org}/outside_collaborators', {
+        org: org,
+        per_page: 100
+    })
+        .catch((error) => {
+        throw error;
+    });
+};
 async function members_get(octokit, login) {
     logger.verbose(`Getting members for ${login}`);
     const admins = (await getOrgMembers(octokit, login, 'admin'));
@@ -68732,7 +68724,7 @@ async function members_get(octokit, login) {
         }))
     ]);
 }
-async function members_apply(octokit, login, dryrun = true, members) {
+async function members_apply(octokit, login, dryrun = true, members, behaviours) {
     logger.verbose(`Applying members for ${login} dryrun ${dryrun}`);
     const currentMembers = await members_get(octokit, login);
     removeEmpty(currentMembers);
@@ -68749,9 +68741,49 @@ async function members_apply(octokit, login, dryrun = true, members) {
         logger.info(`Members are out of sync, \n\tmembers to be updated: ${differences.update.map((m) => m.login)} \n\tmembers to be removed: ${differences.remove.map((m) => m.login)}`);
         logger.verbose('diff', differences);
         if (!dryrun) {
-            logger.verbose('Applying changes to members');
-            // todo: apply changes
-            return members;
+            logger.verbose(`Updating org ${login} members`);
+            try {
+                await Promise.all(differences.update.filter((member) => {
+                    return member.role !== 'collaborator';
+                }).map(async (member) => { await updateOrgMember(octokit, login, member.login, member.role); }));
+                await Promise.all(differences.update.filter((member) => {
+                    return member.role === 'collaborator';
+                }).map(async (member) => { await convertToOutsideCollaborator(octokit, login, member.login); }));
+                switch (behaviours.unknown_members) {
+                    case "remove":
+                        await Promise.all(differences.remove.filter((member) => {
+                            return member.role !== 'collaborator';
+                        }).map(async (member) => { await removeOrgMember(octokit, login, member.login); }));
+                        break;
+                    case "convert_to_outside_collaborator":
+                        await Promise.all(differences.remove.filter((member) => {
+                            return member.role !== 'collaborator';
+                        }).map(async (member) => { await convertToOutsideCollaborator(octokit, login, member.login); }));
+                        break;
+                    case "warn":
+                        logger.warn(`Members ${differences.remove.filter((member) => {
+                            return member.role !== 'collaborator';
+                        }).map(m => m.login)} not removed, please remove manually`);
+                        break;
+                }
+                switch (behaviours.unknown_collaborators) {
+                    case "remove":
+                        await Promise.all(differences.remove.filter((member) => {
+                            return member.role === 'collaborator';
+                        }).map(async (member) => { await removeOrgOutsideCollaborator(octokit, login, member.login); }));
+                        break;
+                    case "warn":
+                        logger.warn(`Outside Collaborators ${differences.remove.filter((member) => {
+                            return member.role === 'collaborator';
+                        }).map(m => m.login)} not removed, please remove manually`);
+                        break;
+                }
+                return members;
+            }
+            catch (error) {
+                logger.error('Error updating members', error);
+                throw error;
+            }
         }
         else {
             logger.verbose('Dry run, not applying changes');
@@ -68767,7 +68799,24 @@ async function members_apply(octokit, login, dryrun = true, members) {
 ;// CONCATENATED MODULE: ./lib/teams.js
 
 
-
+const getOrgTeams = async (octokit, org) => {
+    return await octokit.paginate('GET /orgs/{org}/teams', {
+        org: org,
+        per_page: 100
+    });
+};
+const getTeamMembers = async (octokit, org, slug, role = 'all') => {
+    return await octokit
+        .paginate('GET /orgs/{org}/teams/{slug}/members?role={role}', {
+        org: org,
+        slug: slug,
+        role: role,
+        per_page: 100
+    })
+        .catch((error) => {
+        throw error;
+    });
+};
 async function teams_get(octokit, login) {
     logger.verbose(`Getting teams for ${login}`);
     const teams = (await getOrgTeams(octokit, login));
@@ -68789,7 +68838,7 @@ async function teams_get(octokit, login) {
         ]
     })));
 }
-async function teams_apply(octokit, login, dryrun = true, teams) {
+async function teams_apply(octokit, login, dryrun = true, teams, behaviours) {
     logger.verbose(`Applying teams for ${login} dryrun ${dryrun}`);
     const currentTeams = await teams_get(octokit, login);
     removeEmpty(teams);
@@ -68837,114 +68886,11 @@ async function teams_apply(octokit, login, dryrun = true, teams) {
     }
 }
 
-;// CONCATENATED MODULE: ./lib/repositories.js
-
-
-
-async function repositories_get(octokit, login) {
-    logger.verbose(`Getting repos for ${login}`);
-    const repos = (await getOrgRepos(octokit, login));
-    return Promise.all(repos.map(async (repo) => ({
-        name: repo.name,
-        description: repo.description,
-        homepage: repo.homepage,
-        visibility: repo.private ? 'private' : 'public',
-        has_issues: repo.has_issues,
-        has_projects: repo.has_projects,
-        has_wiki: repo.has_wiki,
-        is_template: repo.is_template,
-        allow_squash_merge: repo.allow_squash_merge,
-        allow_merge_commit: repo.allow_merge_commit,
-        delete_branch_on_merge: repo.delete_branch_on_merge,
-        members: (await getRepoCollaborators(octokit, login, repo.name)).map((member) => ({
-            login: member.login,
-            permission: member.role_name
-        })),
-        teams: (await getRepoTeams(octokit, login, repo.name)).map((repo) => ({
-            slug: repo.slug,
-            permission: repo.permission
-        }))
-    })));
-}
-async function repositories_apply(octokit, login, dryrun = true, repos) {
-    logger.verbose(`Applying repos for ${login} dryrun ${dryrun}`);
-    const currentRepos = await repositories_get(octokit, login);
-    removeEmpty(repos);
-    removeEmpty(currentRepos);
-    logger.silly('currentRepos', currentRepos);
-    const exist = (a, b) => a.name === b.name;
-    const same = (a, b) => a.name === b.name &&
-        a.description === b.description &&
-        a.homepage === b.homepage &&
-        a.visibility === b.visibility &&
-        a.has_issues === b.has_issues &&
-        a.has_projects === b.has_projects &&
-        a.has_wiki === b.has_wiki &&
-        a.is_template === b.is_template &&
-        a.allow_squash_merge === b.allow_squash_merge &&
-        a.allow_merge_commit === b.allow_merge_commit &&
-        a.delete_branch_on_merge === b.delete_branch_on_merge;
-    const sameMember = (a, b) => a.login === b.login && a.permission === b.permission;
-    const existMember = (a, b) => a.login === b.login;
-    const sameTeam = (a, b) => a.slug === b.slug && a.permission === b.permission;
-    const existTeam = (a, b) => a.slug === b.slug;
-    const differences = {
-        remove: currentRepos.filter((cm) => !repos.find((t) => exist(cm, t))),
-        update: repos.filter((t) => !currentRepos.find((cm) => same(cm, t))),
-        members: [],
-        teams: []
-    };
-    repos.forEach((r) => {
-        const currentRepo = currentRepos.find((ct) => ct.name === r.name);
-        if (currentRepo) {
-            const membersDifferencesForRepo = {
-                repo: r.name,
-                remove: currentRepo.members?.filter((cm) => !r.members?.find((m) => existMember(cm, m))) || [],
-                update: r.members?.filter((m) => !currentRepo.members?.find((cm) => sameMember(cm, m))) || []
-            };
-            if (membersDifferencesForRepo.remove.length > 0 || membersDifferencesForRepo.update.length > 0) {
-                differences.members.push(membersDifferencesForRepo);
-            }
-            // check teams
-            const teamsDifferencesForRepo = {
-                repo: r.name,
-                remove: currentRepo.teams?.filter((cm) => !r.teams?.find((m) => existTeam(cm, m))) || [],
-                update: r.teams?.filter((m) => !currentRepo.teams?.find((cm) => sameTeam(cm, m))) || []
-            };
-            if (teamsDifferencesForRepo.remove.length > 0 || teamsDifferencesForRepo.update.length > 0) {
-                differences.teams.push(teamsDifferencesForRepo);
-            }
-        }
-    });
-    logger.debug('diff', differences);
-    if (differences.remove.length > 0 ||
-        differences.update.length > 0 ||
-        differences.members.length > 0 ||
-        differences.teams.length > 0) {
-        logger.info(`Repos are out of sync, \n\trepos to be updated: ${differences.update.map((m) => m.name)} \n\trepos to be removed: ${differences.remove.map((m) => m.name)} \n\tmembers to be updated: ${differences.members.map((m) => m.repo)}, \n\tteams to be updated: ${differences.teams.map((m) => m.repo)}`);
-        logger.verbose('diff', differences);
-        if (!dryrun) {
-            logger.verbose('Applying changes to repos');
-            // todo: apply changes
-            return repos;
-        }
-        else {
-            logger.verbose('Dry run, not applying changes');
-            return repos;
-        }
-    }
-    else {
-        logger.info('Repos already in sync');
-        return repos;
-    }
-}
-
 // EXTERNAL MODULE: ./node_modules/ajv/dist/ajv.js
 var dist_ajv = __nccwpck_require__(2426);
 // EXTERNAL MODULE: ./node_modules/octokit/dist-node/index.js
 var dist_node = __nccwpck_require__(7467);
 ;// CONCATENATED MODULE: ./lib/gops.js
-
 
 
 
@@ -68965,7 +68911,6 @@ const init = async (octokit, gops, organization, configFile) => {
     gops.org = await get(octokit, organization);
     gops.members = await members_get(octokit, organization);
     gops.teams = await teams_get(octokit, organization);
-    gops.repos = await repositories_get(octokit, organization);
     removeEmpty(gops);
     logger.verbose(`Writing gops.yml at path '${configFile}'`);
     external_fs_.writeFileSync(configFile, js_yaml.dump(gops), { encoding: 'utf8' });
@@ -68990,12 +68935,11 @@ const validate = async (octokit, gops) => {
 };
 const gops_apply = async (octokit, gops, organization, dryRun = true) => {
     logger.verbose(`Running ${dryRun ? 'Dry-run' : 'Apply'}`);
-    let updated = { org: {}, members: [], teams: [], repos: [] };
+    let updated = { org: {}, members: [], teams: [], behaviours: gops.behaviours };
     // handle changes
     updated.org = await apply(octokit, organization, dryRun, gops.org);
-    updated.members = await members_apply(octokit, organization, dryRun, gops.members);
-    updated.teams = await teams_apply(octokit, organization, dryRun, gops.teams);
-    updated.repos = await repositories_apply(octokit, organization, dryRun, gops.repos);
+    updated.members = await members_apply(octokit, organization, dryRun, gops.members, gops.behaviours);
+    updated.teams = await teams_apply(octokit, organization, dryRun, gops.teams, gops.behaviours);
     return updated;
 };
 const run = async (org, cmd, configFile, githubToken) => {
@@ -69042,7 +68986,7 @@ const run = async (org, cmd, configFile, githubToken) => {
 __nccwpck_require__.a(__webpack_module__, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
 /* harmony import */ var dotenv__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(2437);
 /* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(2186);
-/* harmony import */ var _gops_js__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(1673);
+/* harmony import */ var _gops_js__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(186);
 
 dotenv__WEBPACK_IMPORTED_MODULE_0__.config();
 
