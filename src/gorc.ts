@@ -16,6 +16,7 @@ export interface Behaviors {
   unknown_members: 'remove' | 'warn' | 'convert_to_outside_collaborator';
   unknown_collaborators: 'remove' | 'warn';
 }
+
 export interface Gorc {
   org: Organization;
   members: Member[];
@@ -72,8 +73,8 @@ export const apply = async (octokit: Octokit, gorc: Gorc, organization: string, 
   // handle changes
   updated.org = await applyOrg(octokit, organization, dryRun, gorc.org);
   updated.members = await applyMembers(octokit, organization, dryRun, gorc.members, gorc.behaviours);
-  updated.collaborators = await applyCollaborators(octokit, organization, dryRun, gorc.collaborators, gorc.behaviours);
-  updated.teams = await applyTeams(octokit, organization, dryRun, gorc.teams, gorc.behaviours);
+  // updated.collaborators = await applyCollaborators(octokit, organization, dryRun, gorc.collaborators, gorc.behaviours);
+  // updated.teams = await applyTeams(octokit, organization, dryRun, gorc.teams, gorc.behaviours);
 
   return updated;
 };

@@ -17,7 +17,6 @@ org:
 members:
   - login: ex0b1t
     role: admin
-collaborators: []
 teams:
   - slug: admin
     name: admin

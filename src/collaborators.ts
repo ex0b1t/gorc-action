@@ -16,6 +16,15 @@ const removeOrgOutsideCollaborator = async (octokit: Octokit, org: string, usern
 
 const addOrgOutsideCollaborator = async (octokit: Octokit, org: string, username: string) => {
   logger.verbose(`Adding outside collaborator ${username} to ${org}`);
+  await octokit
+    .request('PUT /orgs/{org}/memberships/{username}', {
+      org: org,
+      username: username,
+      role: 'member'
+    })
+    .catch((error) => {
+      throw error;
+    });
   return await octokit
     .request('PUT /orgs/{org}/outside_collaborators/{username}', {
       org: org,
@@ -40,7 +49,7 @@ const getOrgCollaborators = async (octokit: Octokit, org: string) => {
 export async function get(octokit: Octokit, login: string): Promise<string[]> {
   logger.verbose(`Getting collaborators for ${login}`);
   const collaborators = (await getOrgCollaborators(octokit, login)) as any[];
-  return Promise.all([...collaborators.map(async (collaborator) => collaborator.login)]);
+  return Promise.all([...collaborators.map(async (collaborator) => collaborator.login?.toLowerCase())]);
 }
 
 export async function apply(
@@ -57,8 +66,8 @@ export async function apply(
 
   // compare current collaborators with desired collaborators and return differences
   const differences = {
-    remove: currentCollaborator.filter((cm) => !collaborators.find((m) => cm === m)),
-    update: collaborators.filter((m) => !currentCollaborator.find((cm) => cm === m))
+    remove: currentCollaborator.filter((cm) => !collaborators.find((m) => cm?.toLowerCase() === m?.toLowerCase())),
+    update: collaborators.filter((m) => !currentCollaborator.find((cm) => cm?.toLowerCase() === m?.toLowerCase()))
   };
   logger.debug('diff', differences);
 

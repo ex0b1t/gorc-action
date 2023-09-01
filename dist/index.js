@@ -64673,7 +64673,7 @@ exports.LRUCache = LRUCache;
 
 // EXPORTS
 __nccwpck_require__.d(__webpack_exports__, {
-  "HO": () => (/* binding */ removeEmpty),
+  "HO": () => (/* binding */ gorc_removeEmpty),
   "KH": () => (/* binding */ run)
 });
 
@@ -68543,7 +68543,7 @@ var main = __nccwpck_require__(2437);
 
 main.config();
 const logLevel = process.env.LOG_LEVEL || 'debug';
-const logger = winston.createLogger({
+const logger_logger = winston.createLogger({
     level: logLevel,
     transports: [
         new winston.transports.Console({
@@ -68571,7 +68571,6 @@ const mapper = (org) => {
         has_repository_projects: org.has_repository_projects,
         default_repository_permission: org.default_repository_permission,
         members_can_create_repositories: org.members_can_create_repositories,
-        members_can_create_internal_repositories: org.members_can_create_internal_repositories,
         members_can_create_private_repositories: org.members_can_create_private_repositories,
         members_can_create_public_repositories: org.members_can_create_public_repositories,
         members_can_create_pages: org.members_can_create_pages,
@@ -68596,45 +68595,45 @@ const updateOrg = async (octokit, org, update) => {
     });
 };
 const get = async (octokit, login) => {
-    logger.verbose(`Getting org ${login}`);
+    logger_logger.verbose(`Getting org ${login}`);
     try {
         const { data: org } = await getOrg(octokit, login);
-        logger.silly('org', org);
+        logger_logger.silly('org', org);
         return mapper(org);
     }
     catch (error) {
-        logger.error('Error getting org', error);
+        logger_logger.error('Error getting org', error);
         throw error;
     }
 };
 const apply = async (octokit, login, dryrun = true, org) => {
-    logger.verbose(`Applying org ${login} dryrun ${dryrun}`);
+    logger_logger.verbose(`Applying org ${login} dryrun ${dryrun}`);
     const currentOrg = await get(octokit, login);
-    removeEmpty(currentOrg);
+    gorc_removeEmpty(currentOrg);
     const differences = deep_diff(currentOrg, org);
-    logger.debug('diff', differences);
+    logger_logger.debug('diff', differences);
     if (differences) {
-        logger.info(`Org is out of sync, fields to be updated: ${differences.map((d) => d.path?.join('.')).join(', ')}`);
-        logger.verbose('diff', differences);
+        logger_logger.info(`Org is out of sync, fields to be updated: ${differences.map((d) => d.path?.join('.')).join(', ')}`);
+        logger_logger.verbose('diff', differences);
         if (!dryrun) {
-            logger.verbose(`Updating org ${login}`);
+            logger_logger.verbose(`Updating org ${login}`);
             try {
                 const { data: updatedOrg } = await updateOrg(octokit, login, org);
-                logger.silly('updatedOrg', updatedOrg);
+                logger_logger.silly('updatedOrg', updatedOrg);
                 return mapper(updatedOrg);
             }
             catch (error) {
-                logger.error('Error updating org', error);
+                logger_logger.error('Error updating org', error);
                 throw error;
             }
         }
         else {
-            logger.verbose('Dry run, not applying changes');
+            logger_logger.verbose('Dry run, not applying changes');
             return org;
         }
     }
     else {
-        logger.info('Org already in sync');
+        logger_logger.info('Org already in sync');
         return org;
     }
 };
@@ -68654,7 +68653,7 @@ const getOrgMembers = async (octokit, org, role = 'all') => {
     });
 };
 const removeOrgMember = async (octokit, org, username) => {
-    logger.verbose(`Removing member ${username} from ${org}`);
+    logger_logger.verbose(`Removing member ${username} from ${org}`);
     return await octokit
         .request('DELETE /orgs/{org}/members/{username}', {
         org: org,
@@ -68665,7 +68664,7 @@ const removeOrgMember = async (octokit, org, username) => {
     });
 };
 const updateOrgMember = async (octokit, org, username, role) => {
-    logger.verbose(`Updating member ${username} to ${role} in ${org}`);
+    logger_logger.verbose(`Updating member ${username} to ${role} in ${org}`);
     return await octokit
         .request('PUT /orgs/{org}/memberships/{username}', {
         org: org,
@@ -68677,38 +68676,38 @@ const updateOrgMember = async (octokit, org, username, role) => {
     });
 };
 async function members_get(octokit, login) {
-    logger.verbose(`Getting members for ${login}`);
+    logger_logger.verbose(`Getting members for ${login}`);
     const admins = (await getOrgMembers(octokit, login, 'admin'));
     const members = (await getOrgMembers(octokit, login, 'member'));
     return Promise.all([
         ...admins.map(async (member) => ({
-            login: member.login,
+            login: member.login?.toLowerCase(),
             role: 'admin'
         })),
         ...members.map(async (member) => ({
-            login: member.login,
+            login: member.login?.toLowerCase(),
             role: 'member'
         }))
     ]);
 }
 async function members_apply(octokit, login, dryrun = true, members, behaviours) {
-    logger.verbose(`Applying members for ${login} dryrun ${dryrun}`);
+    logger_logger.verbose(`Applying members for ${login} dryrun ${dryrun}`);
     const currentMembers = await members_get(octokit, login);
-    removeEmpty(currentMembers);
-    logger.silly('currentMembers', currentMembers);
-    const same = (a, b) => a.login === b.login && a.role === b.role;
-    const exist = (a, b) => a.login === b.login;
+    gorc_removeEmpty(currentMembers);
+    logger_logger.silly('currentMembers', currentMembers);
+    const same = (a, b) => a.login?.toLowerCase() === b.login?.toLowerCase() && a.role === b.role;
+    const exist = (a, b) => a.login?.toLowerCase() === b.login?.toLowerCase();
     // compare current members with desired members and return differences
     const differences = {
         remove: currentMembers.filter((cm) => !members.find((m) => exist(cm, m))),
         update: members.filter((m) => !currentMembers.find((cm) => same(cm, m)))
     };
-    logger.debug('diff', differences);
+    logger_logger.debug('diff', differences);
     if (differences.remove.length > 0 || differences.update.length > 0) {
-        logger.info(`Members are out of sync, \n\tmembers to be updated: ${differences.update.map((m) => m.login)} \n\tmembers to be removed: ${differences.remove.map((m) => m.login)}`);
-        logger.verbose('diff', differences);
+        logger_logger.info(`Members are out of sync, \n\tmembers to be updated: ${differences.update.map((m) => m.login)} \n\tmembers to be removed: ${differences.remove.map((m) => m.login)}`);
+        logger_logger.verbose('diff', differences);
         if (!dryrun) {
-            logger.verbose(`Updating org ${login} members`);
+            logger_logger.verbose(`Updating org ${login} members`);
             try {
                 // Update member roles
                 await Promise.all(differences.update.map(async (member) => {
@@ -68722,23 +68721,23 @@ async function members_apply(octokit, login, dryrun = true, members, behaviours)
                         }));
                         break;
                     case 'warn':
-                        logger.warn(`Members ${differences.remove.map((m) => m.login)} not removed, please remove manually`);
+                        logger_logger.warn(`Members ${differences.remove.map((m) => m.login)} not removed, please remove manually`);
                         break;
                 }
                 return members;
             }
             catch (error) {
-                logger.error('Error updating members', error);
+                logger_logger.error('Error updating members', error);
                 throw error;
             }
         }
         else {
-            logger.verbose('Dry run, not applying changes');
+            logger_logger.verbose('Dry run, not applying changes');
             return members;
         }
     }
     else {
-        logger.info('Members already in sync');
+        logger_logger.info('Members already in sync');
         return members;
     }
 }
@@ -68759,6 +68758,15 @@ const removeOrgOutsideCollaborator = async (octokit, org, username) => {
 };
 const addOrgOutsideCollaborator = async (octokit, org, username) => {
     logger.verbose(`Adding outside collaborator ${username} to ${org}`);
+    await octokit
+        .request('PUT /orgs/{org}/memberships/{username}', {
+        org: org,
+        username: username,
+        role: 'member'
+    })
+        .catch((error) => {
+        throw error;
+    });
     return await octokit
         .request('PUT /orgs/{org}/outside_collaborators/{username}', {
         org: org,
@@ -68779,9 +68787,9 @@ const getOrgCollaborators = async (octokit, org) => {
     });
 };
 async function collaborators_get(octokit, login) {
-    logger.verbose(`Getting collaborators for ${login}`);
+    logger_logger.verbose(`Getting collaborators for ${login}`);
     const collaborators = (await getOrgCollaborators(octokit, login));
-    return Promise.all([...collaborators.map(async (collaborator) => collaborator.login)]);
+    return Promise.all([...collaborators.map(async (collaborator) => collaborator.login?.toLowerCase())]);
 }
 async function collaborators_apply(octokit, login, dryrun = true, collaborators, behaviours) {
     logger.verbose(`Applying collaborator for ${login} dryrun ${dryrun}`);
@@ -68790,8 +68798,8 @@ async function collaborators_apply(octokit, login, dryrun = true, collaborators,
     logger.silly('currentCollaborator', currentCollaborator);
     // compare current collaborators with desired collaborators and return differences
     const differences = {
-        remove: currentCollaborator.filter((cm) => !collaborators.find((m) => cm === m)),
-        update: collaborators.filter((m) => !currentCollaborator.find((cm) => cm === m))
+        remove: currentCollaborator.filter((cm) => !collaborators.find((m) => cm?.toLowerCase() === m?.toLowerCase())),
+        update: collaborators.filter((m) => !currentCollaborator.find((cm) => cm?.toLowerCase() === m?.toLowerCase()))
     };
     logger.debug('diff', differences);
     if (differences.remove.length > 0 || differences.update.length > 0) {
@@ -68853,7 +68861,7 @@ const getTeamMembers = async (octokit, org, slug, role = 'all') => {
     });
 };
 async function teams_get(octokit, login) {
-    logger.verbose(`Getting teams for ${login}`);
+    logger_logger.verbose(`Getting teams for ${login}`);
     const teams = (await getOrgTeams(octokit, login));
     return Promise.all(teams.map(async (team) => ({
         slug: team.slug,
@@ -68935,60 +68943,60 @@ var dist_node = __nccwpck_require__(7467);
 
 
 
-function removeEmpty(obj) {
+function gorc_removeEmpty(obj) {
     Object.keys(obj).forEach(function (key) {
-        (obj[key] && typeof obj[key] === 'object' && removeEmpty(obj[key])) ||
+        (obj[key] && typeof obj[key] === 'object' && gorc_removeEmpty(obj[key])) ||
             ((obj[key] === '' || obj[key] === null) && delete obj[key]);
     });
     return obj;
 }
 const init = async (octokit, gorc, organization, configFile) => {
-    logger.verbose('Running init');
+    logger_logger.verbose('Running init');
     gorc.org = await get(octokit, organization);
     gorc.members = await members_get(octokit, organization);
     gorc.collaborators = await collaborators_get(octokit, organization);
     gorc.teams = await teams_get(octokit, organization);
-    removeEmpty(gorc);
-    logger.verbose(`Writing gorc.yml at path '${configFile}'`);
+    gorc_removeEmpty(gorc);
+    logger_logger.verbose(`Writing gorc.yml at path '${configFile}'`);
     external_fs_.writeFileSync(configFile, js_yaml.dump(gorc), { encoding: 'utf8' });
-    logger.debug('gorc.yml written');
+    logger_logger.debug('gorc.yml written');
     return gorc;
 };
 /**
  * Validate the gorc.yml file against the schema
  */
 const validate = async (octokit, gorc) => {
-    logger.verbose('Running validation');
+    logger_logger.verbose('Running validation');
     const ajv = new dist_ajv();
     const schema = JSON.parse(external_fs_.readFileSync('gorc-schema.json', { encoding: 'utf8' }));
     const validate = ajv.compile(schema);
     const valid = validate(gorc);
     if (!valid && validate.errors) {
-        logger.error(JSON.stringify(validate.errors, null, 2));
+        logger_logger.error(JSON.stringify(validate.errors, null, 2));
         throw new dist_ajv.ValidationError(validate.errors);
     }
-    logger.info(`Gorc config is ${valid ? 'valid' : 'invalid'}}`);
+    logger_logger.info(`Gorc config is ${valid ? 'valid' : 'invalid'}}`);
     return valid;
 };
 const gorc_apply = async (octokit, gorc, organization, dryRun = true) => {
-    logger.verbose(`Running ${dryRun ? 'Dry-run' : 'Apply'}`);
+    logger_logger.verbose(`Running ${dryRun ? 'Dry-run' : 'Apply'}`);
     let updated = { org: {}, members: [], collaborators: [], teams: [], behaviours: gorc.behaviours };
     // handle changes
     updated.org = await apply(octokit, organization, dryRun, gorc.org);
     updated.members = await members_apply(octokit, organization, dryRun, gorc.members, gorc.behaviours);
-    updated.collaborators = await collaborators_apply(octokit, organization, dryRun, gorc.collaborators, gorc.behaviours);
-    updated.teams = await teams_apply(octokit, organization, dryRun, gorc.teams, gorc.behaviours);
+    // updated.collaborators = await applyCollaborators(octokit, organization, dryRun, gorc.collaborators, gorc.behaviours);
+    // updated.teams = await applyTeams(octokit, organization, dryRun, gorc.teams, gorc.behaviours);
     return updated;
 };
 const run = async (org, cmd, configFile, githubToken) => {
-    logger.verbose(`Running gorc with org '${org}' and command '${cmd}' and configFile '${configFile}'!`);
+    logger_logger.verbose(`Running gorc with org '${org}' and command '${cmd}' and configFile '${configFile}'!`);
     const gorc = js_yaml.load(external_fs_.readFileSync(configFile, { encoding: 'utf8' })) || {};
-    logger.debug(`Gorc config file read successfully!`);
-    logger.silly('Gorc config content', gorc);
+    logger_logger.debug(`Gorc config file read successfully!`);
+    logger_logger.silly('Gorc config content', gorc);
     const octokit = new dist_node.Octokit({
         auth: githubToken
     });
-    logger.debug(`Octokit created successfully!`);
+    logger_logger.debug(`Octokit created successfully!`);
     let output = { org: org, errors: [] };
     try {
         switch (cmd) {
@@ -69011,7 +69019,7 @@ const run = async (org, cmd, configFile, githubToken) => {
     catch (err) {
         output.errors?.push(err);
     }
-    logger.debug('Output', output);
+    logger_logger.debug('Output', output);
     return output;
 };
 

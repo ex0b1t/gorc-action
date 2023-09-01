@@ -37,7 +37,6 @@ export const mapper = (org: any): Organization => {
     has_repository_projects: org.has_repository_projects,
     default_repository_permission: org.default_repository_permission,
     members_can_create_repositories: org.members_can_create_repositories,
-    members_can_create_internal_repositories: org.members_can_create_internal_repositories,
     members_can_create_private_repositories: org.members_can_create_private_repositories,
     members_can_create_public_repositories: org.members_can_create_public_repositories,
     members_can_create_pages: org.members_can_create_pages,

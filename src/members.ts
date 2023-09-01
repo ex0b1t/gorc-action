@@ -50,11 +50,11 @@ export async function get(octokit: Octokit, login: string): Promise<Member[]> {
   const members = (await getOrgMembers(octokit, login, 'member')) as any[];
   return Promise.all([
     ...admins.map(async (member) => ({
-      login: member.login,
+      login: member.login?.toLowerCase(),
       role: 'admin'
     })),
     ...members.map(async (member) => ({
-      login: member.login,
+      login: member.login?.toLowerCase(),
       role: 'member'
     }))
   ]);
@@ -72,8 +72,8 @@ export async function apply(
   removeEmpty(currentMembers);
   logger.silly('currentMembers', currentMembers);
 
-  const same = (a: Member, b: Member) => a.login === b.login && a.role === b.role;
-  const exist = (a: Member, b: Member) => a.login === b.login;
+  const same = (a: Member, b: Member) => a.login?.toLowerCase() === b.login?.toLowerCase() && a.role === b.role;
+  const exist = (a: Member, b: Member) => a.login?.toLowerCase() === b.login?.toLowerCase();
 
   // compare current members with desired members and return differences
   const differences = {
