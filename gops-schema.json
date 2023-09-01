@@ -99,10 +99,17 @@
           "role": {
             "description": "The role of the member\n",
             "type": "string",
-            "enum": ["admin", "member", "collaborator"]
+            "enum": ["admin", "member"]
           }
         },
         "required": ["login", "role"]
+      }
+    },
+    "collaborators": {
+      "type": "array",
+      "description": "A list of collaborators of the organization\n",
+      "items": {
+        "type": "string"
       }
     },
     "teams": {
@@ -168,14 +175,14 @@
         "unknown_members": {
           "description": "Behaviour to apply if an unknown member is found\n",
           "type": "string",
-          "enum": ["remove", "convert_to_outside_collaborator", "warn"],
-          "default": "convert_to_outside_collaborator"
+          "enum": ["remove", "warn"],
+          "default": "remove"
         },
         "unknown_collaborator": {
           "description": "Behaviour to apply if an unknown member is found\n",
           "type": "string",
           "enum": ["remove", "warn"],
-          "default": "warn"
+          "default": "remove"
         }
       }
     }

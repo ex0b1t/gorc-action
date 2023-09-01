@@ -5,6 +5,7 @@ import { Member } from './members.js';
 import { Team } from './teams.js';
 import { get as getOrg, apply as applyOrg } from './organizations.js';
 import { get as getOrgMembers, apply as applyMembers } from './members.js';
+import { get as getOrgCollaborators, apply as applyCollaborators } from './collaborators.js';
 import { get as getOrgTeams, apply as applyTeams } from './teams.js';
 import Ajv, { ValidationError } from 'ajv';
 import { logger } from './logger.js';
@@ -18,6 +19,7 @@ export interface Behaviors {
 export interface Gops {
   org: Organization;
   members: Member[];
+  collaborators: string[];
   teams: Team[];
   behaviours: Behaviors;
 }
@@ -34,6 +36,7 @@ export const init = async (octokit: Octokit, gops: Gops, organization: string, c
   logger.verbose('Running init');
   gops.org = await getOrg(octokit, organization);
   gops.members = await getOrgMembers(octokit, organization);
+  gops.collaborators = await getOrgCollaborators(octokit, organization);
   gops.teams = await getOrgTeams(octokit, organization);
 
   removeEmpty(gops);
@@ -54,7 +57,7 @@ export const validate = async (octokit: Octokit, gops: Gops): Promise<boolean> =
   const valid = validate(gops);
 
   if (!valid && validate.errors) {
-    logger.error(validate.errors);
+    logger.error(JSON.stringify(validate.errors, null, 2));
     throw new ValidationError(validate.errors);
   }
 
@@ -64,11 +67,12 @@ export const validate = async (octokit: Octokit, gops: Gops): Promise<boolean> =
 
 export const apply = async (octokit: Octokit, gops: Gops, organization: string, dryRun = true): Promise<Gops> => {
   logger.verbose(`Running ${dryRun ? 'Dry-run' : 'Apply'}`);
-  let updated: Gops = { org: {}, members: [], teams: [], behaviours: gops.behaviours };
+  let updated: Gops = { org: {}, members: [], collaborators: [], teams: [], behaviours: gops.behaviours };
 
   // handle changes
   updated.org = await applyOrg(octokit, organization, dryRun, gops.org);
   updated.members = await applyMembers(octokit, organization, dryRun, gops.members, gops.behaviours);
+  updated.collaborators = await applyCollaborators(octokit, organization, dryRun, gops.collaborators, gops.behaviours);
   updated.teams = await applyTeams(octokit, organization, dryRun, gops.teams, gops.behaviours);
 
   return updated;

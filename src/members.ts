@@ -1,7 +1,6 @@
 import { logger } from './logger.js';
 import { Behaviors, removeEmpty } from './gops.js';
 import { Octokit } from 'octokit';
-import { mapper, Organization } from './organizations';
 
 export interface Member {
   login: string;
@@ -45,46 +44,10 @@ const updateOrgMember = async (octokit: Octokit, org: string, username: string, 
     });
 };
 
-const convertToOutsideCollaborator = async (octokit: Octokit, org: string, username: string) => {
-  logger.verbose(`Converting member ${username} to outside collaborator in ${org}`);
-  return await octokit
-    .request('PUT /orgs/{org}/outside_collaborators/{username}', {
-      org: org,
-      username: username
-    })
-    .catch((error) => {
-      throw error;
-    });
-};
-
-const removeOrgOutsideCollaborator = async (octokit: Octokit, org: string, username: string) => {
-  logger.verbose(`Removing outside collaborator ${username} from ${org}`);
-  return await octokit
-    .request('DELETE /orgs/{org}/outside_collaborators/{username}', {
-      org: org,
-      username: username
-    })
-    .catch((error) => {
-      throw error;
-    });
-};
-
-const getOrgCollaborators = async (octokit: Octokit, org: string) => {
-  return await octokit
-    .paginate('GET /orgs/{org}/outside_collaborators', {
-      org: org,
-      per_page: 100
-    })
-    .catch((error) => {
-      throw error;
-    });
-};
-
 export async function get(octokit: Octokit, login: string): Promise<Member[]> {
   logger.verbose(`Getting members for ${login}`);
   const admins = (await getOrgMembers(octokit, login, 'admin')) as any[];
   const members = (await getOrgMembers(octokit, login, 'member')) as any[];
-  const collaborators = (await getOrgCollaborators(octokit, login)) as any[];
   return Promise.all([
     ...admins.map(async (member) => ({
       login: member.login,
@@ -93,10 +56,6 @@ export async function get(octokit: Octokit, login: string): Promise<Member[]> {
     ...members.map(async (member) => ({
       login: member.login,
       role: 'member'
-    })),
-    ...collaborators.map(async (member) => ({
-      login: member.login,
-      role: 'collaborator'
     }))
   ]);
 }
@@ -133,79 +92,24 @@ export async function apply(
     if (!dryrun) {
       logger.verbose(`Updating org ${login} members`);
       try {
+        // Update member roles
         await Promise.all(
-          differences.update
-            .filter((member) => {
-              return member.role !== 'collaborator';
-            })
-            .map(async (member) => {
-              await updateOrgMember(octokit, login, member.login, member.role);
-            })
-        );
-        await Promise.all(
-          differences.update
-            .filter((member) => {
-              return member.role === 'collaborator';
-            })
-            .map(async (member) => {
-              await convertToOutsideCollaborator(octokit, login, member.login);
-            })
+          differences.update.map(async (member) => {
+            await updateOrgMember(octokit, login, member.login, member.role);
+          })
         );
 
+        // either just warn the member exists or remove it
         switch (behaviours.unknown_members) {
           case 'remove':
             await Promise.all(
-              differences.remove
-                .filter((member) => {
-                  return member.role !== 'collaborator';
-                })
-                .map(async (member) => {
-                  await removeOrgMember(octokit, login, member.login);
-                })
-            );
-            break;
-          case 'convert_to_outside_collaborator':
-            await Promise.all(
-              differences.remove
-                .filter((member) => {
-                  return member.role !== 'collaborator';
-                })
-                .map(async (member) => {
-                  await convertToOutsideCollaborator(octokit, login, member.login);
-                })
+              differences.remove.map(async (member) => {
+                await removeOrgMember(octokit, login, member.login);
+              })
             );
             break;
           case 'warn':
-            logger.warn(
-              `Members ${differences.remove
-                .filter((member) => {
-                  return member.role !== 'collaborator';
-                })
-                .map((m) => m.login)} not removed, please remove manually`
-            );
-            break;
-        }
-
-        switch (behaviours.unknown_collaborators) {
-          case 'remove':
-            await Promise.all(
-              differences.remove
-                .filter((member) => {
-                  return member.role === 'collaborator';
-                })
-                .map(async (member) => {
-                  await removeOrgOutsideCollaborator(octokit, login, member.login);
-                })
-            );
-            break;
-          case 'warn':
-            logger.warn(
-              `Outside Collaborators ${differences.remove
-                .filter((member) => {
-                  return member.role === 'collaborator';
-                })
-                .map((m) => m.login)} not removed, please remove manually`
-            );
+            logger.warn(`Members ${differences.remove.map((m) => m.login)} not removed, please remove manually`);
             break;
         }
 

@@ -17,6 +17,7 @@ org:
 members:
   - login: ex0b1t
     role: admin
+collaborators: []
 teams:
   - slug: admin
     name: admin
@@ -27,5 +28,5 @@ teams:
         role: maintainer
 behaviours:
   unknown_teams: remove
-  unknown_members: convert_to_outside_collaborator
-  unknown_collaborator: warn
+  unknown_members: remove
+  unknown_collaborator: remove

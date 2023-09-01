@@ -64667,7 +64667,7 @@ exports.LRUCache = LRUCache;
 
 /***/ }),
 
-/***/ 186:
+/***/ 3017:
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
 
 
@@ -68655,7 +68655,8 @@ const getOrgMembers = async (octokit, org, role = 'all') => {
 };
 const removeOrgMember = async (octokit, org, username) => {
     logger.verbose(`Removing member ${username} from ${org}`);
-    return await octokit.request("DELETE /orgs/{org}/members/{username}", {
+    return await octokit
+        .request('DELETE /orgs/{org}/members/{username}', {
         org: org,
         username: username
     })
@@ -68665,40 +68666,11 @@ const removeOrgMember = async (octokit, org, username) => {
 };
 const updateOrgMember = async (octokit, org, username, role) => {
     logger.verbose(`Updating member ${username} to ${role} in ${org}`);
-    return await octokit.request("PUT /orgs/{org}/memberships/{username}", {
+    return await octokit
+        .request('PUT /orgs/{org}/memberships/{username}', {
         org: org,
         username: username,
         role: role
-    })
-        .catch((error) => {
-        throw error;
-    });
-};
-const convertToOutsideCollaborator = async (octokit, org, username) => {
-    logger.verbose(`Converting member ${username} to outside collaborator in ${org}`);
-    return await octokit.request("PUT /orgs/{org}/outside_collaborators/{username}", {
-        org: org,
-        username: username
-    })
-        .catch((error) => {
-        throw error;
-    });
-};
-const removeOrgOutsideCollaborator = async (octokit, org, username) => {
-    logger.verbose(`Removing outside collaborator ${username} from ${org}`);
-    return await octokit.request("DELETE /orgs/{org}/outside_collaborators/{username}", {
-        org: org,
-        username: username
-    })
-        .catch((error) => {
-        throw error;
-    });
-};
-const getOrgCollaborators = async (octokit, org) => {
-    return await octokit
-        .paginate('GET /orgs/{org}/outside_collaborators', {
-        org: org,
-        per_page: 100
     })
         .catch((error) => {
         throw error;
@@ -68708,7 +68680,6 @@ async function members_get(octokit, login) {
     logger.verbose(`Getting members for ${login}`);
     const admins = (await getOrgMembers(octokit, login, 'admin'));
     const members = (await getOrgMembers(octokit, login, 'member'));
-    const collaborators = (await getOrgCollaborators(octokit, login));
     return Promise.all([
         ...admins.map(async (member) => ({
             login: member.login,
@@ -68717,10 +68688,6 @@ async function members_get(octokit, login) {
         ...members.map(async (member) => ({
             login: member.login,
             role: 'member'
-        })),
-        ...collaborators.map(async (member) => ({
-            login: member.login,
-            role: 'collaborator'
         }))
     ]);
 }
@@ -68743,39 +68710,19 @@ async function members_apply(octokit, login, dryrun = true, members, behaviours)
         if (!dryrun) {
             logger.verbose(`Updating org ${login} members`);
             try {
-                await Promise.all(differences.update.filter((member) => {
-                    return member.role !== 'collaborator';
-                }).map(async (member) => { await updateOrgMember(octokit, login, member.login, member.role); }));
-                await Promise.all(differences.update.filter((member) => {
-                    return member.role === 'collaborator';
-                }).map(async (member) => { await convertToOutsideCollaborator(octokit, login, member.login); }));
+                // Update member roles
+                await Promise.all(differences.update.map(async (member) => {
+                    await updateOrgMember(octokit, login, member.login, member.role);
+                }));
+                // either just warn the member exists or remove it
                 switch (behaviours.unknown_members) {
-                    case "remove":
-                        await Promise.all(differences.remove.filter((member) => {
-                            return member.role !== 'collaborator';
-                        }).map(async (member) => { await removeOrgMember(octokit, login, member.login); }));
+                    case 'remove':
+                        await Promise.all(differences.remove.map(async (member) => {
+                            await removeOrgMember(octokit, login, member.login);
+                        }));
                         break;
-                    case "convert_to_outside_collaborator":
-                        await Promise.all(differences.remove.filter((member) => {
-                            return member.role !== 'collaborator';
-                        }).map(async (member) => { await convertToOutsideCollaborator(octokit, login, member.login); }));
-                        break;
-                    case "warn":
-                        logger.warn(`Members ${differences.remove.filter((member) => {
-                            return member.role !== 'collaborator';
-                        }).map(m => m.login)} not removed, please remove manually`);
-                        break;
-                }
-                switch (behaviours.unknown_collaborators) {
-                    case "remove":
-                        await Promise.all(differences.remove.filter((member) => {
-                            return member.role === 'collaborator';
-                        }).map(async (member) => { await removeOrgOutsideCollaborator(octokit, login, member.login); }));
-                        break;
-                    case "warn":
-                        logger.warn(`Outside Collaborators ${differences.remove.filter((member) => {
-                            return member.role === 'collaborator';
-                        }).map(m => m.login)} not removed, please remove manually`);
+                    case 'warn':
+                        logger.warn(`Members ${differences.remove.map((m) => m.login)} not removed, please remove manually`);
                         break;
                 }
                 return members;
@@ -68793,6 +68740,94 @@ async function members_apply(octokit, login, dryrun = true, members, behaviours)
     else {
         logger.info('Members already in sync');
         return members;
+    }
+}
+
+;// CONCATENATED MODULE: ./lib/collaborators.js
+
+
+const removeOrgOutsideCollaborator = async (octokit, org, username) => {
+    logger.verbose(`Removing outside collaborator ${username} from ${org}`);
+    return await octokit
+        .request('DELETE /orgs/{org}/outside_collaborators/{username}', {
+        org: org,
+        username: username
+    })
+        .catch((error) => {
+        throw error;
+    });
+};
+const addOrgOutsideCollaborator = async (octokit, org, username) => {
+    logger.verbose(`Adding outside collaborator ${username} to ${org}`);
+    return await octokit
+        .request('PUT /orgs/{org}/outside_collaborators/{username}', {
+        org: org,
+        username: username
+    })
+        .catch((error) => {
+        throw error;
+    });
+};
+const getOrgCollaborators = async (octokit, org) => {
+    return await octokit
+        .paginate('GET /orgs/{org}/outside_collaborators', {
+        org: org,
+        per_page: 100
+    })
+        .catch((error) => {
+        throw error;
+    });
+};
+async function collaborators_get(octokit, login) {
+    logger.verbose(`Getting collaborators for ${login}`);
+    const collaborators = (await getOrgCollaborators(octokit, login));
+    return Promise.all([...collaborators.map(async (collaborator) => collaborator.login)]);
+}
+async function collaborators_apply(octokit, login, dryrun = true, collaborators, behaviours) {
+    logger.verbose(`Applying collaborator for ${login} dryrun ${dryrun}`);
+    const currentCollaborator = await collaborators_get(octokit, login);
+    removeEmpty(currentCollaborator);
+    logger.silly('currentCollaborator', currentCollaborator);
+    // compare current collaborators with desired collaborators and return differences
+    const differences = {
+        remove: currentCollaborator.filter((cm) => !collaborators.find((m) => cm === m)),
+        update: collaborators.filter((m) => !currentCollaborator.find((cm) => cm === m))
+    };
+    logger.debug('diff', differences);
+    if (differences.remove.length > 0 || differences.update.length > 0) {
+        logger.info(`Collaborators are out of sync, \n\tcollaborator to be added: ${differences.update} \n\tcollaborator to be removed: ${differences.remove}`);
+        logger.verbose('diff', differences);
+        if (!dryrun) {
+            logger.verbose(`Updating org ${login} collaborators`);
+            try {
+                await Promise.all(differences.update.map(async (collaborator) => {
+                    await addOrgOutsideCollaborator(octokit, login, collaborator);
+                }));
+                switch (behaviours.unknown_collaborators) {
+                    case 'remove':
+                        await Promise.all(differences.remove.map(async (collaborator) => {
+                            await removeOrgOutsideCollaborator(octokit, login, collaborator);
+                        }));
+                        break;
+                    case 'warn':
+                        logger.warn(`Outside Collaborators ${differences.remove.map((m) => m)} not removed, please remove manually`);
+                        break;
+                }
+                return collaborators;
+            }
+            catch (error) {
+                logger.error('Error updating collaborators', error);
+                throw error;
+            }
+        }
+        else {
+            logger.verbose('Dry run, not applying changes');
+            return collaborators;
+        }
+    }
+    else {
+        logger.info('Collaborators already in sync');
+        return collaborators;
     }
 }
 
@@ -68899,6 +68934,7 @@ var dist_node = __nccwpck_require__(7467);
 
 
 
+
 function removeEmpty(obj) {
     Object.keys(obj).forEach(function (key) {
         (obj[key] && typeof obj[key] === 'object' && removeEmpty(obj[key])) ||
@@ -68910,6 +68946,7 @@ const init = async (octokit, gops, organization, configFile) => {
     logger.verbose('Running init');
     gops.org = await get(octokit, organization);
     gops.members = await members_get(octokit, organization);
+    gops.collaborators = await collaborators_get(octokit, organization);
     gops.teams = await teams_get(octokit, organization);
     removeEmpty(gops);
     logger.verbose(`Writing gops.yml at path '${configFile}'`);
@@ -68927,7 +68964,7 @@ const validate = async (octokit, gops) => {
     const validate = ajv.compile(schema);
     const valid = validate(gops);
     if (!valid && validate.errors) {
-        logger.error(validate.errors);
+        logger.error(JSON.stringify(validate.errors, null, 2));
         throw new dist_ajv.ValidationError(validate.errors);
     }
     logger.info(`Gops config is ${valid ? 'valid' : 'invalid'}}`);
@@ -68935,10 +68972,11 @@ const validate = async (octokit, gops) => {
 };
 const gops_apply = async (octokit, gops, organization, dryRun = true) => {
     logger.verbose(`Running ${dryRun ? 'Dry-run' : 'Apply'}`);
-    let updated = { org: {}, members: [], teams: [], behaviours: gops.behaviours };
+    let updated = { org: {}, members: [], collaborators: [], teams: [], behaviours: gops.behaviours };
     // handle changes
     updated.org = await apply(octokit, organization, dryRun, gops.org);
     updated.members = await members_apply(octokit, organization, dryRun, gops.members, gops.behaviours);
+    updated.collaborators = await collaborators_apply(octokit, organization, dryRun, gops.collaborators, gops.behaviours);
     updated.teams = await teams_apply(octokit, organization, dryRun, gops.teams, gops.behaviours);
     return updated;
 };
@@ -68986,7 +69024,7 @@ const run = async (org, cmd, configFile, githubToken) => {
 __nccwpck_require__.a(__webpack_module__, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
 /* harmony import */ var dotenv__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(2437);
 /* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(2186);
-/* harmony import */ var _gops_js__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(186);
+/* harmony import */ var _gops_js__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(3017);
 
 dotenv__WEBPACK_IMPORTED_MODULE_0__.config();
 
