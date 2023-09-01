@@ -1,5 +1,5 @@
 {
-  "name": "gops-action",
+  "name": "gorc-action",
   "version": "1.0.0",
   "description": "",
   "main": "lib/main.js",

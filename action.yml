@@ -1,5 +1,5 @@
-name: 'GitHub GitOps Action'
-description: 'Configure GitHub Action'
+name: 'GitHub Gorc Action'
+description: 'Gorcs are mysterious creatures that configure GitHub organizations when you are not looking.'
 inputs:
   command:
     required: true
@@ -10,10 +10,10 @@ inputs:
       GitHub Organization
     default: ${{ github.repository_owner }}
     required: false
-  gops-config:
+  gorc-config:
     description: |
-      Path to gops config file
-    default: .github/gops.yml
+      Path to gorc config file
+    default: .github/gorc.yml
     required: false
   github-token:
     description: GitHub Token to write comments

@@ -1,6 +1,6 @@
 import { logger } from './logger.js';
 import diff from 'deep-diff';
-import { removeEmpty } from './gops.js';
+import { removeEmpty } from './gorc.js';
 import { Octokit } from 'octokit';
 
 export interface Organization {

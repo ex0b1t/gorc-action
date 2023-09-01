@@ -1,5 +1,5 @@
 import { logger } from './logger.js';
-import { Behaviors, removeEmpty } from './gops.js';
+import { Behaviors, removeEmpty } from './gorc.js';
 import { Octokit } from 'octokit';
 
 const removeOrgOutsideCollaborator = async (octokit: Octokit, org: string, username: string) => {

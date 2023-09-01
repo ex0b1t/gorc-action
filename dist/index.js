@@ -64667,7 +64667,7 @@ exports.LRUCache = LRUCache;
 
 /***/ }),
 
-/***/ 3017:
+/***/ 2074:
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
 
 
@@ -68925,7 +68925,7 @@ async function teams_apply(octokit, login, dryrun = true, teams, behaviours) {
 var dist_ajv = __nccwpck_require__(2426);
 // EXTERNAL MODULE: ./node_modules/octokit/dist-node/index.js
 var dist_node = __nccwpck_require__(7467);
-;// CONCATENATED MODULE: ./lib/gops.js
+;// CONCATENATED MODULE: ./lib/gorc.js
 
 
 
@@ -68942,49 +68942,49 @@ function removeEmpty(obj) {
     });
     return obj;
 }
-const init = async (octokit, gops, organization, configFile) => {
+const init = async (octokit, gorc, organization, configFile) => {
     logger.verbose('Running init');
-    gops.org = await get(octokit, organization);
-    gops.members = await members_get(octokit, organization);
-    gops.collaborators = await collaborators_get(octokit, organization);
-    gops.teams = await teams_get(octokit, organization);
-    removeEmpty(gops);
-    logger.verbose(`Writing gops.yml at path '${configFile}'`);
-    external_fs_.writeFileSync(configFile, js_yaml.dump(gops), { encoding: 'utf8' });
-    logger.debug('gops.yml written');
-    return gops;
+    gorc.org = await get(octokit, organization);
+    gorc.members = await members_get(octokit, organization);
+    gorc.collaborators = await collaborators_get(octokit, organization);
+    gorc.teams = await teams_get(octokit, organization);
+    removeEmpty(gorc);
+    logger.verbose(`Writing gorc.yml at path '${configFile}'`);
+    external_fs_.writeFileSync(configFile, js_yaml.dump(gorc), { encoding: 'utf8' });
+    logger.debug('gorc.yml written');
+    return gorc;
 };
 /**
- * Validate the gops.yml file against the schema
+ * Validate the gorc.yml file against the schema
  */
-const validate = async (octokit, gops) => {
+const validate = async (octokit, gorc) => {
     logger.verbose('Running validation');
     const ajv = new dist_ajv();
-    const schema = JSON.parse(external_fs_.readFileSync('gops-schema.json', { encoding: 'utf8' }));
+    const schema = JSON.parse(external_fs_.readFileSync('gorc-schema.json', { encoding: 'utf8' }));
     const validate = ajv.compile(schema);
-    const valid = validate(gops);
+    const valid = validate(gorc);
     if (!valid && validate.errors) {
         logger.error(JSON.stringify(validate.errors, null, 2));
         throw new dist_ajv.ValidationError(validate.errors);
     }
-    logger.info(`Gops config is ${valid ? 'valid' : 'invalid'}}`);
+    logger.info(`Gorc config is ${valid ? 'valid' : 'invalid'}}`);
     return valid;
 };
-const gops_apply = async (octokit, gops, organization, dryRun = true) => {
+const gorc_apply = async (octokit, gorc, organization, dryRun = true) => {
     logger.verbose(`Running ${dryRun ? 'Dry-run' : 'Apply'}`);
-    let updated = { org: {}, members: [], collaborators: [], teams: [], behaviours: gops.behaviours };
+    let updated = { org: {}, members: [], collaborators: [], teams: [], behaviours: gorc.behaviours };
     // handle changes
-    updated.org = await apply(octokit, organization, dryRun, gops.org);
-    updated.members = await members_apply(octokit, organization, dryRun, gops.members, gops.behaviours);
-    updated.collaborators = await collaborators_apply(octokit, organization, dryRun, gops.collaborators, gops.behaviours);
-    updated.teams = await teams_apply(octokit, organization, dryRun, gops.teams, gops.behaviours);
+    updated.org = await apply(octokit, organization, dryRun, gorc.org);
+    updated.members = await members_apply(octokit, organization, dryRun, gorc.members, gorc.behaviours);
+    updated.collaborators = await collaborators_apply(octokit, organization, dryRun, gorc.collaborators, gorc.behaviours);
+    updated.teams = await teams_apply(octokit, organization, dryRun, gorc.teams, gorc.behaviours);
     return updated;
 };
 const run = async (org, cmd, configFile, githubToken) => {
-    logger.verbose(`Running gops with org '${org}' and command '${cmd}' and configFile '${configFile}'!`);
-    const gops = js_yaml.load(external_fs_.readFileSync(configFile, { encoding: 'utf8' })) || {};
-    logger.debug(`Gops config file read successfully!`);
-    logger.silly('Gops config content', gops);
+    logger.verbose(`Running gorc with org '${org}' and command '${cmd}' and configFile '${configFile}'!`);
+    const gorc = js_yaml.load(external_fs_.readFileSync(configFile, { encoding: 'utf8' })) || {};
+    logger.debug(`Gorc config file read successfully!`);
+    logger.silly('Gorc config content', gorc);
     const octokit = new dist_node.Octokit({
         auth: githubToken
     });
@@ -68993,16 +68993,16 @@ const run = async (org, cmd, configFile, githubToken) => {
     try {
         switch (cmd) {
             case 'init':
-                output.gops = await init(octokit, gops, org, configFile);
+                output.gorc = await init(octokit, gorc, org, configFile);
                 break;
             case 'validate':
-                output.valid = await validate(octokit, gops);
+                output.valid = await validate(octokit, gorc);
                 break;
             case 'dry-run':
-                output.gops = await gops_apply(octokit, gops, org, true);
+                output.gorc = await gorc_apply(octokit, gorc, org, true);
                 break;
             case 'apply':
-                output.gops = await gops_apply(octokit, gops, org, false);
+                output.gorc = await gorc_apply(octokit, gorc, org, false);
                 break;
             default:
                 output.errors?.push(new Error(`Unknown command ${cmd}`));
@@ -69024,20 +69024,20 @@ const run = async (org, cmd, configFile, githubToken) => {
 __nccwpck_require__.a(__webpack_module__, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
 /* harmony import */ var dotenv__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(2437);
 /* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(2186);
-/* harmony import */ var _gops_js__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(3017);
+/* harmony import */ var _gorc_js__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(2074);
 
 dotenv__WEBPACK_IMPORTED_MODULE_0__.config();
 
 
 const organization = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('organization', { required: true });
 const command = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('command', { required: true });
-const configFile = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('gops-config', { required: true });
+const configFile = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('gorc-config', { required: true });
 const githubToken = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('github-token', { required: true });
 try {
-    const output = await (0,_gops_js__WEBPACK_IMPORTED_MODULE_2__/* .run */ .KH)(organization, command, configFile, githubToken);
+    const output = await (0,_gorc_js__WEBPACK_IMPORTED_MODULE_2__/* .run */ .KH)(organization, command, configFile, githubToken);
     _actions_core__WEBPACK_IMPORTED_MODULE_1__.setOutput('org', organization);
     _actions_core__WEBPACK_IMPORTED_MODULE_1__.setOutput('command', command);
-    _actions_core__WEBPACK_IMPORTED_MODULE_1__.setOutput('gops', output.gops);
+    _actions_core__WEBPACK_IMPORTED_MODULE_1__.setOutput('gorc', output.gorc);
     _actions_core__WEBPACK_IMPORTED_MODULE_1__.setOutput('valid', output.valid);
     _actions_core__WEBPACK_IMPORTED_MODULE_1__.setOutput('errors', output.errors);
 }

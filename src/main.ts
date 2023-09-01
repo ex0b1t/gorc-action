@@ -3,11 +3,11 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import core from '@actions/core';
-import { run } from './gops.js';
+import { run } from './gorc.js';
 
 const organization: string = core.getInput('organization', { required: true });
 const command: string = core.getInput('command', { required: true });
-const configFile: string = core.getInput('gops-config', { required: true });
+const configFile: string = core.getInput('gorc-config', { required: true });
 const githubToken: string = core.getInput('github-token', { required: true });
 
 try {
@@ -16,7 +16,7 @@ try {
   core.setOutput('org', organization);
   core.setOutput('command', command);
 
-  core.setOutput('gops', output.gops);
+  core.setOutput('gorc', output.gorc);
   core.setOutput('valid', output.valid);
   core.setOutput('errors', output.errors);
 } catch (error) {
