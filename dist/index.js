@@ -61363,7 +61363,7 @@ module.exports = Logger;
 /***/ }),
 
 /***/ 6959:
-/***/ ((module) => {
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 /**
  * profiler.js: TODO: add file header description.
@@ -61373,13 +61373,12 @@ module.exports = Logger;
  */
 
 
-
 /**
  * TODO: add class description.
  * @type {Profiler}
  * @private
  */
-module.exports = class Profiler {
+class Profiler {
   /**
    * Constructor function for the Profiler instance used by
    * `Logger.prototype.startTimer`. When done is called the timer will finish
@@ -61388,12 +61387,13 @@ module.exports = class Profiler {
    * @private
    */
   constructor(logger) {
-    if (!logger) {
-      throw new Error('Logger is required for profiling.');
+    const Logger = __nccwpck_require__(5153);
+    if (typeof logger !== 'object' || Array.isArray(logger) || !(logger instanceof Logger)) {
+      throw new Error('Logger is required for profiling');
+    } else {
+      this.logger = logger;
+      this.start = Date.now();
     }
-
-    this.logger = logger;
-    this.start = Date.now();
   }
 
   /**
@@ -61416,6 +61416,8 @@ module.exports = class Profiler {
     return this.logger.write(info);
   }
 };
+
+module.exports = Profiler;
 
 
 /***/ }),
@@ -69074,7 +69076,7 @@ module.exports = JSON.parse('{"name":"dotenv","version":"16.3.1","description":"
 /***/ 2561:
 /***/ ((module) => {
 
-module.exports = {"version":"3.10.0"};
+module.exports = {"version":"3.11.0"};
 
 /***/ })
 
