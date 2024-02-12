@@ -22941,7 +22941,7 @@ function _parseVault (options) {
   }
 
   // handle scenario for comma separated keys - for use with key rotation
-  // example: DOTENV_KEY="dotenv://:key_1234@dotenv.org/vault/.env.vault?environment=prod,dotenv://:key_7890@dotenv.org/vault/.env.vault?environment=prod"
+  // example: DOTENV_KEY="dotenv://:key_1234@dotenvx.com/vault/.env.vault?environment=prod,dotenv://:key_7890@dotenvx.com/vault/.env.vault?environment=prod"
   const keys = _dotenvKey(options).split(',')
   const length = keys.length
 
@@ -23005,7 +23005,7 @@ function _instructions (result, dotenvKey) {
     uri = new URL(dotenvKey)
   } catch (error) {
     if (error.code === 'ERR_INVALID_URL') {
-      const err = new Error('INVALID_DOTENV_KEY: Wrong format. Must be in valid uri format like dotenv://:key_1234@dotenv.org/vault/.env.vault?environment=development')
+      const err = new Error('INVALID_DOTENV_KEY: Wrong format. Must be in valid uri format like dotenv://:key_1234@dotenvx.com/vault/.env.vault?environment=development')
       err.code = 'INVALID_DOTENV_KEY'
       throw err
     }
@@ -23085,37 +23085,50 @@ function _configVault (options) {
 }
 
 function configDotenv (options) {
-  let dotenvPath = path.resolve(process.cwd(), '.env')
+  const dotenvPath = path.resolve(process.cwd(), '.env')
   let encoding = 'utf8'
   const debug = Boolean(options && options.debug)
 
-  if (options) {
-    if (options.path != null) {
-      let envPath = options.path
-
-      if (Array.isArray(envPath)) {
-        for (const filepath of options.path) {
-          if (fs.existsSync(filepath)) {
-            envPath = filepath
-            break
-          }
-        }
-      }
-
-      dotenvPath = _resolveHome(envPath)
-    }
-    if (options.encoding != null) {
-      encoding = options.encoding
-    } else {
-      if (debug) {
-        _debug('No encoding is specified. UTF-8 is used by default')
-      }
+  if (options?.encoding) {
+    encoding = options.encoding
+  } else {
+    if (debug) {
+      _debug('No encoding is specified. UTF-8 is used by default')
     }
   }
 
+  let optionPathsThatExist = []
+  if (options?.path) {
+    if (!Array.isArray(options.path)) {
+      if (fs.existsSync(options.path)) {
+        optionPathsThatExist = [_resolveHome(options.path)]
+      }
+    } else {
+      for (const filepath of options.path) {
+        if (fs.existsSync(filepath)) {
+          optionPathsThatExist.push(_resolveHome(filepath))
+        }
+      }
+    }
+
+    if (!optionPathsThatExist.length) {
+      optionPathsThatExist = [dotenvPath]
+    }
+  }
+
+  // If we have options.path, and it had valid paths, use them. Else fall back to .env
+  const pathsToProcess = optionPathsThatExist.length ? optionPathsThatExist : [dotenvPath]
+
+  // Build the parsed data in a temporary object (because we need to return it).  Once we have the final
+  // parsed data, we will combine it with process.env (or options.processEnv if provided).
+
+  const parsed = {}
   try {
-    // Specifying an encoding returns a string instead of a buffer
-    const parsed = DotenvModule.parse(fs.readFileSync(dotenvPath, { encoding }))
+    for (const path of pathsToProcess) {
+      // Specifying an encoding returns a string instead of a buffer
+      const singleFileParsed = DotenvModule.parse(fs.readFileSync(path, { encoding }))
+      DotenvModule.populate(parsed, singleFileParsed, options)
+    }
 
     let processEnv = process.env
     if (options && options.processEnv != null) {
@@ -23123,15 +23136,13 @@ function configDotenv (options) {
     }
 
     DotenvModule.populate(processEnv, parsed, options)
-
-    return { parsed }
   } catch (e) {
     if (debug) {
-      _debug(`Failed to load ${dotenvPath} ${e.message}`)
+      _debug(`Failed to load ${pathsToProcess} ${e.message}`)
     }
-
     return { error: e }
   }
+  return { parsed }
 }
 
 // Populates process.env from .env file
@@ -70617,7 +70628,7 @@ module.exports = JSON.parse('{"$schema":"http://json-schema.org/draft-07/schema#
 /***/ 9968:
 /***/ ((module) => {
 
-module.exports = JSON.parse('{"name":"dotenv","version":"16.4.1","description":"Loads environment variables from .env file","main":"lib/main.js","types":"lib/main.d.ts","exports":{".":{"types":"./lib/main.d.ts","require":"./lib/main.js","default":"./lib/main.js"},"./config":"./config.js","./config.js":"./config.js","./lib/env-options":"./lib/env-options.js","./lib/env-options.js":"./lib/env-options.js","./lib/cli-options":"./lib/cli-options.js","./lib/cli-options.js":"./lib/cli-options.js","./package.json":"./package.json"},"scripts":{"dts-check":"tsc --project tests/types/tsconfig.json","lint":"standard","lint-readme":"standard-markdown","pretest":"npm run lint && npm run dts-check","test":"tap tests/*.js --100 -Rspec","prerelease":"npm test","release":"standard-version"},"repository":{"type":"git","url":"git://github.com/motdotla/dotenv.git"},"funding":"https://github.com/motdotla/dotenv?sponsor=1","keywords":["dotenv","env",".env","environment","variables","config","settings"],"readmeFilename":"README.md","license":"BSD-2-Clause","devDependencies":{"@definitelytyped/dtslint":"^0.0.133","@types/node":"^18.11.3","decache":"^4.6.1","sinon":"^14.0.1","standard":"^17.0.0","standard-markdown":"^7.1.0","standard-version":"^9.5.0","tap":"^16.3.0","tar":"^6.1.11","typescript":"^4.8.4"},"engines":{"node":">=12"},"browser":{"fs":false}}');
+module.exports = JSON.parse('{"name":"dotenv","version":"16.4.3","description":"Loads environment variables from .env file","main":"lib/main.js","types":"lib/main.d.ts","exports":{".":{"types":"./lib/main.d.ts","require":"./lib/main.js","default":"./lib/main.js"},"./config":"./config.js","./config.js":"./config.js","./lib/env-options":"./lib/env-options.js","./lib/env-options.js":"./lib/env-options.js","./lib/cli-options":"./lib/cli-options.js","./lib/cli-options.js":"./lib/cli-options.js","./package.json":"./package.json"},"scripts":{"dts-check":"tsc --project tests/types/tsconfig.json","lint":"standard","lint-readme":"standard-markdown","pretest":"npm run lint && npm run dts-check","test":"tap tests/*.js --100 -Rspec","test:coverage":"tap --coverage-report=lcov","prerelease":"npm test","release":"standard-version"},"repository":{"type":"git","url":"git://github.com/motdotla/dotenv.git"},"funding":"https://dotenvx.com","keywords":["dotenv","env",".env","environment","variables","config","settings"],"readmeFilename":"README.md","license":"BSD-2-Clause","devDependencies":{"@definitelytyped/dtslint":"^0.0.133","@types/node":"^18.11.3","decache":"^4.6.1","sinon":"^14.0.1","standard":"^17.0.0","standard-markdown":"^7.1.0","standard-version":"^9.5.0","tap":"^16.3.0","tar":"^6.1.11","typescript":"^4.8.4"},"engines":{"node":">=12"},"browser":{"fs":false}}');
 
 /***/ }),
 
