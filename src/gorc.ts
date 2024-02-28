@@ -62,7 +62,7 @@ export const validate = async (octokit: Octokit, gorc: Gorc): Promise<boolean> =
     throw new ValidationError(validate.errors);
   }
 
-  logger.info(`Gorc config is ${valid ? 'valid' : 'invalid'}}`);
+  logger.info(`Gorc config is ${valid ? 'valid' : 'invalid'}`);
   return valid;
 };
 
@@ -111,6 +111,7 @@ export const run = async (org: string, cmd: string, configFile: string, githubTo
         output.errors?.push(new Error(`Unknown command ${cmd}`));
     }
   } catch (err) {
+    logger.error(err);
     output.errors?.push(err);
   }
 

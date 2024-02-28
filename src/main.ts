@@ -19,6 +19,10 @@ try {
   core.setOutput('gorc', output.gorc);
   core.setOutput('valid', output.valid);
   core.setOutput('errors', output.errors);
+
+  if (output.errors) {
+    core.setFailed(output.errors.join('\n'));
+  }
 } catch (error) {
   if (error instanceof Error) core.setFailed(error.message);
 }
