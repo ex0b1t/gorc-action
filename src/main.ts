@@ -4,6 +4,7 @@ dotenv.config();
 
 import core from '@actions/core';
 import { run } from './gorc.js';
+import { logger } from './logger.js';
 
 const organization: string = core.getInput('organization', { required: true });
 const command: string = core.getInput('command', { required: true });
@@ -21,8 +22,12 @@ try {
   core.setOutput('errors', output.errors);
 
   if (output.errors != undefined && output.errors.length > 0) {
+    logger.error('Failing due to errors');
     core.setFailed(output.errors.join('\n'));
   }
 } catch (error) {
+  logger.error('Failing due to error');
   if (error instanceof Error) core.setFailed(error.message);
 }
+
+logger.verbose('Done');

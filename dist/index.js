@@ -66747,7 +66747,7 @@ exports.LRUCache = LRUCache;
 
 /***/ }),
 
-/***/ 404:
+/***/ 6137:
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
 
 
@@ -70614,24 +70614,8 @@ var jsYaml = {
 /* harmony default export */ const js_yaml = (jsYaml);
 
 
-// EXTERNAL MODULE: ./node_modules/winston/lib/winston.js
-var winston = __nccwpck_require__(4158);
-// EXTERNAL MODULE: ./node_modules/dotenv/lib/main.js
-var main = __nccwpck_require__(2437);
-;// CONCATENATED MODULE: ./lib/logger.js
-
-
-main.config();
-const logLevel = process.env.LOG_LEVEL || 'debug';
-const logger_logger = winston.createLogger({
-    level: logLevel,
-    transports: [
-        new winston.transports.Console({
-            format: winston.format.simple()
-        })
-    ]
-});
-
+// EXTERNAL MODULE: ./lib/logger.js
+var lib_logger = __nccwpck_require__(9110);
 // EXTERNAL MODULE: ./node_modules/deep-diff/index.js
 var deep_diff = __nccwpck_require__(3426);
 ;// CONCATENATED MODULE: ./lib/organizations.js
@@ -70675,45 +70659,45 @@ const updateOrg = async (octokit, org, update) => {
     });
 };
 const get = async (octokit, login) => {
-    logger_logger.verbose(`Getting org ${login}`);
+    lib_logger/* logger.verbose */.k.verbose(`Getting org ${login}`);
     try {
         const { data: org } = await getOrg(octokit, login);
-        logger_logger.silly('org', org);
+        lib_logger/* logger.silly */.k.silly('org', org);
         return mapper(org);
     }
     catch (error) {
-        logger_logger.error('Error getting org', error);
+        lib_logger/* logger.error */.k.error('Error getting org', error);
         throw error;
     }
 };
 const apply = async (octokit, login, dryrun = true, org) => {
-    logger_logger.verbose(`Applying org ${login} dryrun ${dryrun}`);
+    lib_logger/* logger.verbose */.k.verbose(`Applying org ${login} dryrun ${dryrun}`);
     const currentOrg = await get(octokit, login);
     gorc_removeEmpty(currentOrg);
     const differences = deep_diff(currentOrg, org);
-    logger_logger.debug('diff', differences);
+    lib_logger/* logger.debug */.k.debug('diff', differences);
     if (differences) {
-        logger_logger.info(`Org is out of sync, fields to be updated: ${differences.map((d) => d.path?.join('.')).join(', ')}`);
-        logger_logger.verbose('diff', differences);
+        lib_logger/* logger.info */.k.info(`Org is out of sync, fields to be updated: ${differences.map((d) => d.path?.join('.')).join(', ')}`);
+        lib_logger/* logger.verbose */.k.verbose('diff', differences);
         if (!dryrun) {
-            logger_logger.verbose(`Updating org ${login}`);
+            lib_logger/* logger.verbose */.k.verbose(`Updating org ${login}`);
             try {
                 const { data: updatedOrg } = await updateOrg(octokit, login, org);
-                logger_logger.silly('updatedOrg', updatedOrg);
+                lib_logger/* logger.silly */.k.silly('updatedOrg', updatedOrg);
                 return mapper(updatedOrg);
             }
             catch (error) {
-                logger_logger.error('Error updating org', error);
+                lib_logger/* logger.error */.k.error('Error updating org', error);
                 throw error;
             }
         }
         else {
-            logger_logger.verbose('Dry run, not applying changes');
+            lib_logger/* logger.verbose */.k.verbose('Dry run, not applying changes');
             return org;
         }
     }
     else {
-        logger_logger.info('Org already in sync');
+        lib_logger/* logger.info */.k.info('Org already in sync');
         return org;
     }
 };
@@ -70733,7 +70717,7 @@ const getOrgMembers = async (octokit, org, role = 'all') => {
     });
 };
 const removeOrgMember = async (octokit, org, username) => {
-    logger_logger.verbose(`Removing member ${username} from ${org}`);
+    lib_logger/* logger.verbose */.k.verbose(`Removing member ${username} from ${org}`);
     return await octokit
         .request('DELETE /orgs/{org}/members/{username}', {
         org: org,
@@ -70744,7 +70728,7 @@ const removeOrgMember = async (octokit, org, username) => {
     });
 };
 const updateOrgMember = async (octokit, org, username, role) => {
-    logger_logger.verbose(`Updating member ${username} to ${role} in ${org}`);
+    lib_logger/* logger.verbose */.k.verbose(`Updating member ${username} to ${role} in ${org}`);
     return await octokit
         .request('PUT /orgs/{org}/memberships/{username}', {
         org: org,
@@ -70756,7 +70740,7 @@ const updateOrgMember = async (octokit, org, username, role) => {
     });
 };
 async function members_get(octokit, login) {
-    logger_logger.verbose(`Getting members for ${login}`);
+    lib_logger/* logger.verbose */.k.verbose(`Getting members for ${login}`);
     const admins = (await getOrgMembers(octokit, login, 'admin'));
     const members = (await getOrgMembers(octokit, login, 'member'));
     return Promise.all([
@@ -70771,10 +70755,10 @@ async function members_get(octokit, login) {
     ]);
 }
 async function members_apply(octokit, login, dryrun = true, members, behaviours) {
-    logger_logger.verbose(`Applying members for ${login} dryrun ${dryrun}`);
+    lib_logger/* logger.verbose */.k.verbose(`Applying members for ${login} dryrun ${dryrun}`);
     const currentMembers = await members_get(octokit, login);
     gorc_removeEmpty(currentMembers);
-    logger_logger.silly('currentMembers', currentMembers);
+    lib_logger/* logger.silly */.k.silly('currentMembers', currentMembers);
     const same = (a, b) => a.login?.toLowerCase() === b.login?.toLowerCase() && a.role === b.role;
     const exist = (a, b) => a.login?.toLowerCase() === b.login?.toLowerCase();
     // compare current members with desired members and return differences
@@ -70782,12 +70766,12 @@ async function members_apply(octokit, login, dryrun = true, members, behaviours)
         remove: currentMembers.filter((cm) => !members.find((m) => exist(cm, m))),
         update: members.filter((m) => !currentMembers.find((cm) => same(cm, m)))
     };
-    logger_logger.debug('diff', differences);
+    lib_logger/* logger.debug */.k.debug('diff', differences);
     if (differences.remove.length > 0 || differences.update.length > 0) {
-        logger_logger.info(`Members are out of sync, \n\tmembers to be updated: ${differences.update.map((m) => m.login)} \n\tmembers to be removed: ${differences.remove.map((m) => m.login)}`);
-        logger_logger.verbose('diff', differences);
+        lib_logger/* logger.info */.k.info(`Members are out of sync, \n\tmembers to be updated: ${differences.update.map((m) => m.login)} \n\tmembers to be removed: ${differences.remove.map((m) => m.login)}`);
+        lib_logger/* logger.verbose */.k.verbose('diff', differences);
         if (!dryrun) {
-            logger_logger.verbose(`Updating org ${login} members`);
+            lib_logger/* logger.verbose */.k.verbose(`Updating org ${login} members`);
             try {
                 // Update member roles
                 await Promise.all(differences.update.map(async (member) => {
@@ -70801,23 +70785,23 @@ async function members_apply(octokit, login, dryrun = true, members, behaviours)
                         }));
                         break;
                     case 'warn':
-                        logger_logger.warn(`Members ${differences.remove.map((m) => m.login)} not removed, please remove manually`);
+                        lib_logger/* logger.warn */.k.warn(`Members ${differences.remove.map((m) => m.login)} not removed, please remove manually`);
                         break;
                 }
                 return members;
             }
             catch (error) {
-                logger_logger.error('Error updating members', error);
+                lib_logger/* logger.error */.k.error('Error updating members', error);
                 throw error;
             }
         }
         else {
-            logger_logger.verbose('Dry run, not applying changes');
+            lib_logger/* logger.verbose */.k.verbose('Dry run, not applying changes');
             return members;
         }
     }
     else {
-        logger_logger.info('Members already in sync');
+        lib_logger/* logger.info */.k.info('Members already in sync');
         return members;
     }
 }
@@ -70867,7 +70851,7 @@ const getOrgCollaborators = async (octokit, org) => {
     });
 };
 async function collaborators_get(octokit, login) {
-    logger_logger.verbose(`Getting collaborators for ${login}`);
+    lib_logger/* logger.verbose */.k.verbose(`Getting collaborators for ${login}`);
     const collaborators = (await getOrgCollaborators(octokit, login));
     return Promise.all([...collaborators.map(async (collaborator) => collaborator.login?.toLowerCase())]);
 }
@@ -70941,7 +70925,7 @@ const getTeamMembers = async (octokit, org, slug, role = 'all') => {
     });
 };
 async function teams_get(octokit, login) {
-    logger_logger.verbose(`Getting teams for ${login}`);
+    lib_logger/* logger.verbose */.k.verbose(`Getting teams for ${login}`);
     const teams = (await getOrgTeams(octokit, login));
     return Promise.all(teams.map(async (team) => ({
         slug: team.slug,
@@ -71226,34 +71210,34 @@ function gorc_removeEmpty(obj) {
     return obj;
 }
 const init = async (octokit, gorc, organization, configFile) => {
-    logger_logger.verbose('Running init');
+    lib_logger/* logger.verbose */.k.verbose('Running init');
     gorc.org = await get(octokit, organization);
     gorc.members = await members_get(octokit, organization);
     gorc.collaborators = await collaborators_get(octokit, organization);
     gorc.teams = await teams_get(octokit, organization);
     gorc_removeEmpty(gorc);
-    logger_logger.verbose(`Writing gorc.yml at path '${configFile}'`);
+    lib_logger/* logger.verbose */.k.verbose(`Writing gorc.yml at path '${configFile}'`);
     external_fs_.writeFileSync(configFile, js_yaml.dump(gorc), { encoding: 'utf8' });
-    logger_logger.debug('gorc.yml written');
+    lib_logger/* logger.debug */.k.debug('gorc.yml written');
     return gorc;
 };
 /**
  * Validate the gorc.yml file against the schema
  */
 const validate = async (octokit, gorc) => {
-    logger_logger.verbose('Running validation');
+    lib_logger/* logger.verbose */.k.verbose('Running validation');
     const ajv = new dist_ajv();
     const validate = ajv.compile(schema_Schema);
     const valid = validate(gorc);
     if (!valid && validate.errors) {
-        logger_logger.error(JSON.stringify(validate.errors, null, 2));
+        lib_logger/* logger.error */.k.error(JSON.stringify(validate.errors, null, 2));
         throw new dist_ajv.ValidationError(validate.errors);
     }
-    logger_logger.info(`Gorc config is ${valid ? 'valid' : 'invalid'}`);
+    lib_logger/* logger.info */.k.info(`Gorc config is ${valid ? 'valid' : 'invalid'}`);
     return valid;
 };
 const gorc_apply = async (octokit, gorc, organization, dryRun = true) => {
-    logger_logger.verbose(`Running ${dryRun ? 'Dry-run' : 'Apply'}`);
+    lib_logger/* logger.verbose */.k.verbose(`Running ${dryRun ? 'Dry-run' : 'Apply'}`);
     let updated = { org: {}, members: [], collaborators: [], teams: [], behaviours: gorc.behaviours };
     // handle changes
     updated.org = await apply(octokit, organization, dryRun, gorc.org);
@@ -71263,14 +71247,14 @@ const gorc_apply = async (octokit, gorc, organization, dryRun = true) => {
     return updated;
 };
 const run = async (org, cmd, configFile, githubToken) => {
-    logger_logger.verbose(`Running gorc with org '${org}' and command '${cmd}' and configFile '${configFile}'!`);
+    lib_logger/* logger.verbose */.k.verbose(`Running gorc with org '${org}' and command '${cmd}' and configFile '${configFile}'!`);
     const gorc = js_yaml.load(external_fs_.readFileSync(configFile, { encoding: 'utf8' })) || {};
-    logger_logger.debug(`Gorc config file read successfully!`);
-    logger_logger.silly('Gorc config content', gorc);
+    lib_logger/* logger.debug */.k.debug(`Gorc config file read successfully!`);
+    lib_logger/* logger.silly */.k.silly('Gorc config content', gorc);
     const octokit = new dist_node.Octokit({
         auth: githubToken
     });
-    logger_logger.debug(`Octokit created successfully!`);
+    lib_logger/* logger.debug */.k.debug(`Octokit created successfully!`);
     let output = { org: org, errors: [] };
     try {
         switch (cmd) {
@@ -71291,12 +71275,36 @@ const run = async (org, cmd, configFile, githubToken) => {
         }
     }
     catch (err) {
-        logger_logger.error(err);
+        lib_logger/* logger.error */.k.error(err);
         output.errors?.push(err);
     }
-    logger_logger.debug('Output', output);
+    lib_logger/* logger.debug */.k.debug('Output', output);
     return output;
 };
+
+
+/***/ }),
+
+/***/ 9110:
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
+
+/* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
+/* harmony export */   "k": () => (/* binding */ logger)
+/* harmony export */ });
+/* harmony import */ var winston__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(4158);
+/* harmony import */ var dotenv__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(2437);
+
+
+dotenv__WEBPACK_IMPORTED_MODULE_1__.config();
+const logLevel = process.env.LOG_LEVEL || 'debug';
+const logger = winston__WEBPACK_IMPORTED_MODULE_0__.createLogger({
+    level: logLevel,
+    transports: [
+        new winston__WEBPACK_IMPORTED_MODULE_0__.transports.Console({
+            format: winston__WEBPACK_IMPORTED_MODULE_0__.format.simple()
+        })
+    ]
+});
 
 
 /***/ }),
@@ -71307,9 +71315,11 @@ const run = async (org, cmd, configFile, githubToken) => {
 __nccwpck_require__.a(__webpack_module__, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
 /* harmony import */ var dotenv__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(2437);
 /* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(2186);
-/* harmony import */ var _gorc_js__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(404);
+/* harmony import */ var _gorc_js__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(6137);
+/* harmony import */ var _logger_js__WEBPACK_IMPORTED_MODULE_3__ = __nccwpck_require__(9110);
 
 dotenv__WEBPACK_IMPORTED_MODULE_0__.config();
+
 
 
 const organization = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('organization', { required: true });
@@ -71323,14 +71333,17 @@ try {
     _actions_core__WEBPACK_IMPORTED_MODULE_1__.setOutput('gorc', output.gorc);
     _actions_core__WEBPACK_IMPORTED_MODULE_1__.setOutput('valid', output.valid);
     _actions_core__WEBPACK_IMPORTED_MODULE_1__.setOutput('errors', output.errors);
-    if (output.errors) {
+    if (output.errors != undefined && output.errors.length > 0) {
+        _logger_js__WEBPACK_IMPORTED_MODULE_3__/* .logger.error */ .k.error('Failing due to errors');
         _actions_core__WEBPACK_IMPORTED_MODULE_1__.setFailed(output.errors.join('\n'));
     }
 }
 catch (error) {
+    _logger_js__WEBPACK_IMPORTED_MODULE_3__/* .logger.error */ .k.error('Failing due to error');
     if (error instanceof Error)
         _actions_core__WEBPACK_IMPORTED_MODULE_1__.setFailed(error.message);
 }
+_logger_js__WEBPACK_IMPORTED_MODULE_3__/* .logger.verbose */ .k.verbose('Done');
 
 __webpack_async_result__();
 } catch(e) { __webpack_async_result__(e); } }, 1);
