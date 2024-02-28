@@ -10,6 +10,7 @@ import { get as getOrgTeams, apply as applyTeams } from './teams.js';
 import Ajv, { ValidationError } from 'ajv';
 import { logger } from './logger.js';
 import { Octokit } from 'octokit';
+import { Schema } from './schema.js';
 
 export interface Behaviors {
   unknown_teams: 'remove' | 'warn';
@@ -53,8 +54,7 @@ export const init = async (octokit: Octokit, gorc: Gorc, organization: string, c
 export const validate = async (octokit: Octokit, gorc: Gorc): Promise<boolean> => {
   logger.verbose('Running validation');
   const ajv = new Ajv();
-  const schema = JSON.parse(fs.readFileSync('gorc-schema.json', { encoding: 'utf8' }));
-  const validate = ajv.compile(schema);
+  const validate = ajv.compile(Schema);
   const valid = validate(gorc);
 
   if (!valid && validate.errors) {
@@ -62,7 +62,7 @@ export const validate = async (octokit: Octokit, gorc: Gorc): Promise<boolean> =
     throw new ValidationError(validate.errors);
   }
 
-  logger.info(`Gorc config is ${valid ? 'valid' : 'invalid'}}`);
+  logger.info(`Gorc config is ${valid ? 'valid' : 'invalid'}`);
   return valid;
 };
 
@@ -111,6 +111,7 @@ export const run = async (org: string, cmd: string, configFile: string, githubTo
         output.errors?.push(new Error(`Unknown command ${cmd}`));
     }
   } catch (err) {
+    logger.error(err);
     output.errors?.push(err);
   }
 

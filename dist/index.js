@@ -66747,7 +66747,7 @@ exports.LRUCache = LRUCache;
 
 /***/ }),
 
-/***/ 2074:
+/***/ 404:
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
 
 
@@ -71013,7 +71013,202 @@ async function teams_apply(octokit, login, dryrun = true, teams, behaviours) {
 var dist_ajv = __nccwpck_require__(2426);
 // EXTERNAL MODULE: ./node_modules/octokit/dist-node/index.js
 var dist_node = __nccwpck_require__(7467);
+;// CONCATENATED MODULE: ./lib/schema.js
+const schema_Schema = {
+    title: 'Describes the configuration of a GitHub Organization\n',
+    description: 'Describes the configuration of a GitHub Organization via a YAML file\n',
+    type: 'object',
+    properties: {
+        org: {
+            description: 'Organizational level configuration\n',
+            type: 'object',
+            properties: {
+                billing_email: {
+                    description: 'The billing email for the organization\n',
+                    type: 'string'
+                },
+                company: {
+                    description: 'The company name for the organization\n',
+                    type: 'string'
+                },
+                email: {
+                    description: 'The publicly visible email for the organization\n',
+                    type: 'string'
+                },
+                twitter_username: {
+                    description: 'The twitter username for the organization\n',
+                    type: 'string'
+                },
+                location: {
+                    description: 'The location of the organization\n',
+                    type: 'string'
+                },
+                name: {
+                    description: 'The name of the organization\n',
+                    type: 'string'
+                },
+                description: {
+                    description: 'The description of the organization\n',
+                    type: 'string'
+                },
+                has_organization_projects: {
+                    description: 'Whether or not the organization has projects enabled\n',
+                    type: 'boolean'
+                },
+                has_repository_projects: {
+                    description: 'Whether or not the organization has repository projects enabled\n',
+                    type: 'boolean'
+                },
+                default_repository_permission: {
+                    description: 'The default repository permission for the organization\n',
+                    type: 'string',
+                    enum: ['read', 'write', 'admin', 'none']
+                },
+                members_can_create_repositories: {
+                    description: 'Whether or not members can create repositories in the organization\n',
+                    type: 'boolean'
+                },
+                members_can_create_internal_repositories: {
+                    description: 'Whether or not members can create internal repositories in the organization\n',
+                    type: 'boolean'
+                },
+                members_can_create_private_repositories: {
+                    description: 'Whether or not members can create private repositories in the organization\n',
+                    type: 'boolean'
+                },
+                members_can_create_public_repositories: {
+                    description: 'Whether or not members can create public repositories in the organization\n',
+                    type: 'boolean'
+                },
+                members_can_create_pages: {
+                    description: 'Whether or not members can create pages in the organization\n',
+                    type: 'boolean'
+                },
+                members_can_create_public_pages: {
+                    description: 'Whether or not members can create public pages in the organization\n',
+                    type: 'boolean'
+                },
+                members_can_create_private_pages: {
+                    description: 'Whether or not members can create private pages in the organization\n',
+                    type: 'boolean'
+                },
+                members_can_fork_private_repositories: {
+                    description: 'Whether or not members can fork private repositories in the organization\n',
+                    type: 'boolean'
+                },
+                web_commit_signoff_required: {
+                    description: 'Whether or not web commit signoff is required in the organization\n',
+                    type: 'boolean'
+                }
+            }
+        },
+        members: {
+            type: 'array',
+            description: 'A list of members of the organization\n',
+            items: {
+                type: 'object',
+                properties: {
+                    login: {
+                        description: 'The username of the member\n',
+                        type: 'string'
+                    },
+                    role: {
+                        description: 'The role of the member\n',
+                        type: 'string',
+                        enum: ['admin', 'member']
+                    }
+                },
+                required: ['login', 'role']
+            }
+        },
+        collaborators: {
+            type: 'array',
+            description: 'A list of collaborators of the organization\n',
+            items: {
+                type: 'string'
+            }
+        },
+        teams: {
+            type: 'array',
+            description: 'A list of teams in the organization\n',
+            items: {
+                type: 'object',
+                properties: {
+                    slug: {
+                        description: 'The slug of the team\n',
+                        type: 'string'
+                    },
+                    name: {
+                        description: 'The name of the team\n',
+                        type: 'string'
+                    },
+                    description: {
+                        description: 'The description of the team\n',
+                        type: 'string'
+                    },
+                    privacy: {
+                        description: 'The privacy of the team\n',
+                        type: 'string',
+                        enum: ['secret', 'closed']
+                    },
+                    parent: {
+                        description: 'The slug of the parent team\n',
+                        type: 'string'
+                    },
+                    members: {
+                        description: 'A list of members of the team\n',
+                        type: 'array',
+                        items: {
+                            type: 'object',
+                            properties: {
+                                login: {
+                                    description: 'The username of the member\n',
+                                    type: 'string'
+                                },
+                                role: {
+                                    description: 'The role of the member\n',
+                                    type: 'string',
+                                    enum: ['member', 'maintainer']
+                                }
+                            },
+                            required: ['login', 'role']
+                        }
+                    }
+                },
+                required: ['name', 'privacy']
+            }
+        },
+        behaviours: {
+            type: 'object',
+            description: 'A list of behaviours to apply to the organization\n',
+            properties: {
+                unknown_teams: {
+                    description: 'Behaviour to apply if an unknown teams is found\n',
+                    type: 'string',
+                    enum: ['remove', 'warn'],
+                    default: 'remove'
+                },
+                unknown_members: {
+                    description: 'Behaviour to apply if an unknown member is found\n',
+                    type: 'string',
+                    enum: ['remove', 'warn'],
+                    default: 'remove'
+                },
+                unknown_collaborator: {
+                    description: 'Behaviour to apply if an unknown member is found\n',
+                    type: 'string',
+                    enum: ['remove', 'warn'],
+                    default: 'remove'
+                }
+            }
+        }
+    },
+    required: ['org'],
+    additionalProperties: false
+};
+
 ;// CONCATENATED MODULE: ./lib/gorc.js
+
 
 
 
@@ -71048,14 +71243,13 @@ const init = async (octokit, gorc, organization, configFile) => {
 const validate = async (octokit, gorc) => {
     logger_logger.verbose('Running validation');
     const ajv = new dist_ajv();
-    const schema = JSON.parse(external_fs_.readFileSync('gorc-schema.json', { encoding: 'utf8' }));
-    const validate = ajv.compile(schema);
+    const validate = ajv.compile(schema_Schema);
     const valid = validate(gorc);
     if (!valid && validate.errors) {
         logger_logger.error(JSON.stringify(validate.errors, null, 2));
         throw new dist_ajv.ValidationError(validate.errors);
     }
-    logger_logger.info(`Gorc config is ${valid ? 'valid' : 'invalid'}}`);
+    logger_logger.info(`Gorc config is ${valid ? 'valid' : 'invalid'}`);
     return valid;
 };
 const gorc_apply = async (octokit, gorc, organization, dryRun = true) => {
@@ -71097,6 +71291,7 @@ const run = async (org, cmd, configFile, githubToken) => {
         }
     }
     catch (err) {
+        logger_logger.error(err);
         output.errors?.push(err);
     }
     logger_logger.debug('Output', output);
@@ -71112,7 +71307,7 @@ const run = async (org, cmd, configFile, githubToken) => {
 __nccwpck_require__.a(__webpack_module__, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
 /* harmony import */ var dotenv__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(2437);
 /* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(2186);
-/* harmony import */ var _gorc_js__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(2074);
+/* harmony import */ var _gorc_js__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(404);
 
 dotenv__WEBPACK_IMPORTED_MODULE_0__.config();
 
@@ -71128,6 +71323,9 @@ try {
     _actions_core__WEBPACK_IMPORTED_MODULE_1__.setOutput('gorc', output.gorc);
     _actions_core__WEBPACK_IMPORTED_MODULE_1__.setOutput('valid', output.valid);
     _actions_core__WEBPACK_IMPORTED_MODULE_1__.setOutput('errors', output.errors);
+    if (output.errors) {
+        _actions_core__WEBPACK_IMPORTED_MODULE_1__.setFailed(output.errors.join('\n'));
+    }
 }
 catch (error) {
     if (error instanceof Error)
