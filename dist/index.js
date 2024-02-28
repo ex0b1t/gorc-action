@@ -71055,7 +71055,7 @@ const validate = async (octokit, gorc) => {
         logger_logger.error(JSON.stringify(validate.errors, null, 2));
         throw new dist_ajv.ValidationError(validate.errors);
     }
-    logger_logger.info(`Gorc config is ${valid ? 'valid' : 'invalid'}}`);
+    logger_logger.info(`Gorc config is ${valid ? 'valid' : 'invalid'}`);
     return valid;
 };
 const gorc_apply = async (octokit, gorc, organization, dryRun = true) => {
@@ -71097,6 +71097,7 @@ const run = async (org, cmd, configFile, githubToken) => {
         }
     }
     catch (err) {
+        logger_logger.error(err);
         output.errors?.push(err);
     }
     logger_logger.debug('Output', output);
@@ -71128,6 +71129,9 @@ try {
     _actions_core__WEBPACK_IMPORTED_MODULE_1__.setOutput('gorc', output.gorc);
     _actions_core__WEBPACK_IMPORTED_MODULE_1__.setOutput('valid', output.valid);
     _actions_core__WEBPACK_IMPORTED_MODULE_1__.setOutput('errors', output.errors);
+    if (output.errors) {
+        _actions_core__WEBPACK_IMPORTED_MODULE_1__.setFailed(output.errors.join('\n'));
+    }
 }
 catch (error) {
     if (error instanceof Error)
