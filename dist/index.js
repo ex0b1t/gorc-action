@@ -2410,7 +2410,7 @@ SOFTWARE.
 
 
 module.exports = function(flag, argv) {
-  argv = argv || process.argv;
+  argv = argv || process.argv || [];
 
   var terminatorPos = argv.indexOf('--');
   var prefix = /^-{1,2}/.test(flag) ? '' : '--';
@@ -61486,6 +61486,146 @@ exports["default"] = _default;
 
 
 
+// Expose modern transport directly as the export
+module.exports = __nccwpck_require__(2429);
+
+// Expose legacy stream
+module.exports.LegacyTransportStream = __nccwpck_require__(6201);
+
+
+/***/ }),
+
+/***/ 6201:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+
+
+const util = __nccwpck_require__(3837);
+const { LEVEL } = __nccwpck_require__(3937);
+const TransportStream = __nccwpck_require__(2429);
+
+/**
+ * Constructor function for the LegacyTransportStream. This is an internal
+ * wrapper `winston >= 3` uses to wrap older transports implementing
+ * log(level, message, meta).
+ * @param {Object} options - Options for this TransportStream instance.
+ * @param {Transpot} options.transport - winston@2 or older Transport to wrap.
+ */
+
+const LegacyTransportStream = module.exports = function LegacyTransportStream(options = {}) {
+  TransportStream.call(this, options);
+  if (!options.transport || typeof options.transport.log !== 'function') {
+    throw new Error('Invalid transport, must be an object with a log method.');
+  }
+
+  this.transport = options.transport;
+  this.level = this.level || options.transport.level;
+  this.handleExceptions = this.handleExceptions || options.transport.handleExceptions;
+
+  // Display our deprecation notice.
+  this._deprecated();
+
+  // Properly bubble up errors from the transport to the
+  // LegacyTransportStream instance, but only once no matter how many times
+  // this transport is shared.
+  function transportError(err) {
+    this.emit('error', err, this.transport);
+  }
+
+  if (!this.transport.__winstonError) {
+    this.transport.__winstonError = transportError.bind(this);
+    this.transport.on('error', this.transport.__winstonError);
+  }
+};
+
+/*
+ * Inherit from TransportStream using Node.js built-ins
+ */
+util.inherits(LegacyTransportStream, TransportStream);
+
+/**
+ * Writes the info object to our transport instance.
+ * @param {mixed} info - TODO: add param description.
+ * @param {mixed} enc - TODO: add param description.
+ * @param {function} callback - TODO: add param description.
+ * @returns {undefined}
+ * @private
+ */
+LegacyTransportStream.prototype._write = function _write(info, enc, callback) {
+  if (this.silent || (info.exception === true && !this.handleExceptions)) {
+    return callback(null);
+  }
+
+  // Remark: This has to be handled in the base transport now because we
+  // cannot conditionally write to our pipe targets as stream.
+  if (!this.level || this.levels[this.level] >= this.levels[info[LEVEL]]) {
+    this.transport.log(info[LEVEL], info.message, info, this._nop);
+  }
+
+  callback(null);
+};
+
+/**
+ * Writes the batch of info objects (i.e. "object chunks") to our transport
+ * instance after performing any necessary filtering.
+ * @param {mixed} chunks - TODO: add params description.
+ * @param {function} callback - TODO: add params description.
+ * @returns {mixed} - TODO: add returns description.
+ * @private
+ */
+LegacyTransportStream.prototype._writev = function _writev(chunks, callback) {
+  for (let i = 0; i < chunks.length; i++) {
+    if (this._accept(chunks[i])) {
+      this.transport.log(
+        chunks[i].chunk[LEVEL],
+        chunks[i].chunk.message,
+        chunks[i].chunk,
+        this._nop
+      );
+      chunks[i].callback();
+    }
+  }
+
+  return callback(null);
+};
+
+/**
+ * Displays a deprecation notice. Defined as a function so it can be
+ * overriden in tests.
+ * @returns {undefined}
+ */
+LegacyTransportStream.prototype._deprecated = function _deprecated() {
+  // eslint-disable-next-line no-console
+  console.error([
+    `${this.transport.name} is a legacy winston transport. Consider upgrading: `,
+    '- Upgrade docs: https://github.com/winstonjs/winston/blob/master/UPGRADE-3.0.md'
+  ].join('\n'));
+};
+
+/**
+ * Clean up error handling state on the legacy transport associated
+ * with this instance.
+ * @returns {undefined}
+ */
+LegacyTransportStream.prototype.close = function close() {
+  if (this.transport.close) {
+    this.transport.close();
+  }
+
+  if (this.transport.__winstonError) {
+    this.transport.removeListener('error', this.transport.__winstonError);
+    this.transport.__winstonError = null;
+  }
+};
+
+
+/***/ }),
+
+/***/ 2429:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+
+
 const util = __nccwpck_require__(3837);
 const Writable = __nccwpck_require__(6993);
 const { LEVEL } = __nccwpck_require__(3937);
@@ -61697,136 +61837,6 @@ TransportStream.prototype._nop = function _nop() {
 };
 
 
-// Expose legacy stream
-module.exports.LegacyTransportStream = __nccwpck_require__(6201);
-
-
-/***/ }),
-
-/***/ 6201:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-
-
-const util = __nccwpck_require__(3837);
-const { LEVEL } = __nccwpck_require__(3937);
-const TransportStream = __nccwpck_require__(7281);
-
-/**
- * Constructor function for the LegacyTransportStream. This is an internal
- * wrapper `winston >= 3` uses to wrap older transports implementing
- * log(level, message, meta).
- * @param {Object} options - Options for this TransportStream instance.
- * @param {Transpot} options.transport - winston@2 or older Transport to wrap.
- */
-
-const LegacyTransportStream = module.exports = function LegacyTransportStream(options = {}) {
-  TransportStream.call(this, options);
-  if (!options.transport || typeof options.transport.log !== 'function') {
-    throw new Error('Invalid transport, must be an object with a log method.');
-  }
-
-  this.transport = options.transport;
-  this.level = this.level || options.transport.level;
-  this.handleExceptions = this.handleExceptions || options.transport.handleExceptions;
-
-  // Display our deprecation notice.
-  this._deprecated();
-
-  // Properly bubble up errors from the transport to the
-  // LegacyTransportStream instance, but only once no matter how many times
-  // this transport is shared.
-  function transportError(err) {
-    this.emit('error', err, this.transport);
-  }
-
-  if (!this.transport.__winstonError) {
-    this.transport.__winstonError = transportError.bind(this);
-    this.transport.on('error', this.transport.__winstonError);
-  }
-};
-
-/*
- * Inherit from TransportStream using Node.js built-ins
- */
-util.inherits(LegacyTransportStream, TransportStream);
-
-/**
- * Writes the info object to our transport instance.
- * @param {mixed} info - TODO: add param description.
- * @param {mixed} enc - TODO: add param description.
- * @param {function} callback - TODO: add param description.
- * @returns {undefined}
- * @private
- */
-LegacyTransportStream.prototype._write = function _write(info, enc, callback) {
-  if (this.silent || (info.exception === true && !this.handleExceptions)) {
-    return callback(null);
-  }
-
-  // Remark: This has to be handled in the base transport now because we
-  // cannot conditionally write to our pipe targets as stream.
-  if (!this.level || this.levels[this.level] >= this.levels[info[LEVEL]]) {
-    this.transport.log(info[LEVEL], info.message, info, this._nop);
-  }
-
-  callback(null);
-};
-
-/**
- * Writes the batch of info objects (i.e. "object chunks") to our transport
- * instance after performing any necessary filtering.
- * @param {mixed} chunks - TODO: add params description.
- * @param {function} callback - TODO: add params description.
- * @returns {mixed} - TODO: add returns description.
- * @private
- */
-LegacyTransportStream.prototype._writev = function _writev(chunks, callback) {
-  for (let i = 0; i < chunks.length; i++) {
-    if (this._accept(chunks[i])) {
-      this.transport.log(
-        chunks[i].chunk[LEVEL],
-        chunks[i].chunk.message,
-        chunks[i].chunk,
-        this._nop
-      );
-      chunks[i].callback();
-    }
-  }
-
-  return callback(null);
-};
-
-/**
- * Displays a deprecation notice. Defined as a function so it can be
- * overriden in tests.
- * @returns {undefined}
- */
-LegacyTransportStream.prototype._deprecated = function _deprecated() {
-  // eslint-disable-next-line no-console
-  console.error([
-    `${this.transport.name} is a legacy winston transport. Consider upgrading: `,
-    '- Upgrade docs: https://github.com/winstonjs/winston/blob/master/UPGRADE-3.0.md'
-  ].join('\n'));
-};
-
-/**
- * Clean up error handling state on the legacy transport associated
- * with this instance.
- * @returns {undefined}
- */
-LegacyTransportStream.prototype.close = function close() {
-  if (this.transport.close) {
-    this.transport.close();
-  }
-
-  if (this.transport.__winstonError) {
-    this.transport.removeListener('error', this.transport.__winstonError);
-    this.transport.__winstonError = null;
-  }
-};
-
-
 /***/ }),
 
 /***/ 4158:
@@ -61966,6 +61976,17 @@ Object.defineProperty(exports, "level", ({
 Object.defineProperty(exports, "exceptions", ({
   get() {
     return defaultLogger.exceptions;
+  }
+}));
+
+/**
+ * Define getter for `rejections` which replaces `handleRejections` and
+ * `unhandleRejections`.
+ * @type {Object}
+ */
+Object.defineProperty(exports, "rejections", ({
+  get() {
+    return defaultLogger.rejections;
   }
 }));
 
@@ -63420,7 +63441,7 @@ const asyncForEach = __nccwpck_require__(1216);
 const debug = __nccwpck_require__(3170)('winston:rejection');
 const once = __nccwpck_require__(4118);
 const stackTrace = __nccwpck_require__(5315);
-const ExceptionStream = __nccwpck_require__(6268);
+const RejectionStream = __nccwpck_require__(8185);
 
 /**
  * Object for handling unhandledRejection events.
@@ -63496,7 +63517,7 @@ module.exports = class RejectionHandler {
         err && err.stack || '  No stack trace'
       ].join('\n'),
       stack: err && err.stack,
-      exception: true,
+      rejection: true,
       date: new Date().toString(),
       process: this.getProcessInfo(),
       os: this.getOsInfo(),
@@ -63559,7 +63580,7 @@ module.exports = class RejectionHandler {
   _addHandler(handler) {
     if (!this.handlers.has(handler)) {
       handler.handleRejections = true;
-      const wrapper = new ExceptionStream(handler);
+      const wrapper = new RejectionStream(handler);
       this.handlers.set(handler, wrapper);
       this.logger.pipe(wrapper);
     }
@@ -63655,6 +63676,65 @@ module.exports = class RejectionHandler {
       const transport = wrap.transport || wrap;
       return transport.handleRejections;
     });
+  }
+};
+
+
+/***/ }),
+
+/***/ 8185:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+/**
+ * rejection-stream.js: TODO: add file header handler.
+ *
+ * (C) 2010 Charlie Robbins
+ * MIT LICENCE
+ */
+
+
+
+const { Writable } = __nccwpck_require__(1642);
+
+/**
+ * TODO: add class description.
+ * @type {RejectionStream}
+ * @extends {Writable}
+ */
+module.exports = class RejectionStream extends Writable {
+  /**
+   * Constructor function for the RejectionStream responsible for wrapping a
+   * TransportStream; only allowing writes of `info` objects with
+   * `info.rejection` set to true.
+   * @param {!TransportStream} transport - Stream to filter to rejections
+   */
+  constructor(transport) {
+    super({ objectMode: true });
+
+    if (!transport) {
+      throw new Error('RejectionStream requires a TransportStream instance.');
+    }
+
+    this.handleRejections = true;
+    this.transport = transport;
+  }
+
+  /**
+   * Writes the info object to our transport instance if (and only if) the
+   * `rejection` property is set on the info.
+   * @param {mixed} info - TODO: add param description.
+   * @param {mixed} enc - TODO: add param description.
+   * @param {mixed} callback - TODO: add param description.
+   * @returns {mixed} - TODO: add return description.
+   * @private
+   */
+  _write(info, enc, callback) {
+    if (info.rejection) {
+      return this.transport.log(info, callback);
+    }
+
+    callback();
+    return true;
   }
 };
 
@@ -64119,7 +64199,7 @@ module.exports = class File extends TransportStream {
         return;
       }
       if (this.lazy) {
-        this._endStream(() => {this.emit('fileclosed')});
+        this._endStream(() => {this.emit('fileclosed');});
         return;
       }
 
@@ -64524,12 +64604,6 @@ module.exports = class File extends TransportStream {
       });
 
     debug('create stream ok', fullpath);
-    if (this.zippedArchive) {
-      const gzip = zlib.createGzip();
-      gzip.pipe(dest);
-      return gzip;
-    }
-
     return dest;
   }
 
@@ -64542,13 +64616,33 @@ module.exports = class File extends TransportStream {
     debug('_incFile', this.filename);
     const ext = path.extname(this._basename);
     const basename = path.basename(this._basename, ext);
+    const tasks = [];
 
-    if (!this.tailable) {
-      this._created += 1;
-      this._checkMaxFilesIncrementing(ext, basename, callback);
-    } else {
-      this._checkMaxFilesTailable(ext, basename, callback);
+    if (this.zippedArchive) {
+      tasks.push(
+        function (cb) {
+          const num = this._created > 0 && !this.tailable ? this._created : '';
+          this._compressFile(
+            path.join(this.dirname, `${basename}${num}${ext}`),
+            path.join(this.dirname, `${basename}${num}${ext}.gz`),
+            cb
+          );
+        }.bind(this)
+      );
     }
+
+    tasks.push(
+      function (cb) {
+        if (!this.tailable) {
+          this._created += 1;
+          this._checkMaxFilesIncrementing(ext, basename, cb);
+        } else {
+          this._checkMaxFilesTailable(ext, basename, cb);
+        }
+      }.bind(this)
+    );
+
+    asyncSeries(tasks, callback);
   }
 
   /**
@@ -64567,13 +64661,9 @@ module.exports = class File extends TransportStream {
     // Caveat emptor (indexzero): rotationFormat() was broken by design When
     // combined with max files because the set of files to unlink is never
     // stored.
-    const target = !this.tailable && this._created
+    return !this.tailable && this._created
       ? `${basename}${isRotation}${ext}`
       : `${basename}${ext}`;
-
-    return this.zippedArchive && !this.tailable
-      ? `${target}.gz`
-      : target;
   }
 
   /**
@@ -64636,10 +64726,33 @@ module.exports = class File extends TransportStream {
 
     asyncSeries(tasks, () => {
       fs.rename(
-        path.join(this.dirname, `${basename}${ext}`),
+        path.join(this.dirname, `${basename}${ext}${isZipped}`),
         path.join(this.dirname, `${basename}1${ext}${isZipped}`),
         callback
       );
+    });
+  }
+
+  /**
+   * Compresses src to dest with gzip and unlinks src
+   * @param {string} src - path to source file.
+   * @param {string} dest - path to zipped destination file.
+   * @param {Function} callback - callback called after file has been compressed.
+   * @returns {undefined}
+   * @private
+   */
+  _compressFile(src, dest, callback) {
+    fs.access(src, fs.F_OK, (err) => {
+      if (err) {
+        return callback();
+      }
+      var gzip = zlib.createGzip();
+      var inp = fs.createReadStream(src);
+      var out = fs.createWriteStream(dest);
+      out.on('finish', () => {
+        fs.unlink(src, callback);
+      });
+      inp.pipe(gzip).pipe(out);
     });
   }
 
@@ -71374,7 +71487,7 @@ module.exports = JSON.parse('{"name":"dotenv","version":"16.4.5","description":"
 /***/ 2561:
 /***/ ((module) => {
 
-module.exports = {"version":"3.11.0"};
+module.exports = {"version":"3.12.0"};
 
 /***/ })
 
