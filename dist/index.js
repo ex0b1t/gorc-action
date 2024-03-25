@@ -64784,7 +64784,7 @@ const http = __nccwpck_require__(3685);
 const https = __nccwpck_require__(5687);
 const { Stream } = __nccwpck_require__(1642);
 const TransportStream = __nccwpck_require__(7281);
-const jsonStringify = __nccwpck_require__(7560);
+const { configure } = __nccwpck_require__(7560);
 
 /**
  * Transport for outputting to a json-rpc server.
@@ -64808,6 +64808,7 @@ module.exports = class Http extends TransportStream {
     this.port = options.port;
     this.auth = options.auth;
     this.path = options.path || '';
+    this.maximumDepth = options.maximumDepth;
     this.agent = options.agent;
     this.headers = options.headers || {};
     this.headers['content-type'] = 'application/json';
@@ -65026,6 +65027,9 @@ module.exports = class Http extends TransportStream {
     req.on('response', res => (
       res.on('end', () => callback(null, res)).resume()
     ));
+    const jsonStringify = configure({
+      ...(this.maximumDepth && { maximumDepth: this.maximumDepth })
+    });
     req.end(Buffer.from(jsonStringify(options, this.options.replacer), 'utf8'));
   }
 };
@@ -71487,7 +71491,7 @@ module.exports = JSON.parse('{"name":"dotenv","version":"16.4.5","description":"
 /***/ 2561:
 /***/ ((module) => {
 
-module.exports = {"version":"3.12.0"};
+module.exports = {"version":"3.13.0"};
 
 /***/ })
 
