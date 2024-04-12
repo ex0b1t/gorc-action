@@ -30,7 +30,7 @@ jobs:
       - name: Package
         run: npm run package
       - name: Git Auto Commit
-        uses: stefanzweifel/git-auto-commit-action@v5.0.0
+        uses: stefanzweifel/git-auto-commit-action@v5.0.1
         with:
           file_pattern: 'dist/**'
   approve:
