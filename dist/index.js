@@ -63187,6 +63187,13 @@ const TransportStream = __nccwpck_require__(7281);
  * @extends {TransportStream}
  */
 module.exports = class Console extends TransportStream {
+  // Keep a reference to the log, warn, and error console methods
+  // in case they get redirected to this transport after the logger is
+  // instantiated. This prevents a circular reference issue.
+  _consoleLog = console.log.bind(console);
+  _consoleWarn = console.warn.bind(console);
+  _consoleError = console.error.bind(console);
+
   /**
    * Constructor function for the Console transport object responsible for
    * persisting log messages and metadata to a terminal or TTY.
@@ -63199,7 +63206,8 @@ module.exports = class Console extends TransportStream {
     this.name = options.name || 'console';
     this.stderrLevels = this._stringArrayToSet(options.stderrLevels);
     this.consoleWarnLevels = this._stringArrayToSet(options.consoleWarnLevels);
-    this.eol = (typeof options.eol === 'string') ? options.eol : os.EOL;
+    this.eol = typeof options.eol === 'string' ? options.eol : os.EOL;
+    this.forceConsole = options.forceConsole || false;
 
     this.setMaxListeners(30);
   }
@@ -63215,12 +63223,12 @@ module.exports = class Console extends TransportStream {
 
     // Remark: what if there is no raw...?
     if (this.stderrLevels[info[LEVEL]]) {
-      if (console._stderr) {
+      if (console._stderr && !this.forceConsole) {
         // Node.js maps `process.stderr` to `console._stderr`.
         console._stderr.write(`${info[MESSAGE]}${this.eol}`);
       } else {
         // console.error adds a newline
-        console.error(info[MESSAGE]);
+        this._consoleError(info[MESSAGE]);
       }
 
       if (callback) {
@@ -63228,13 +63236,13 @@ module.exports = class Console extends TransportStream {
       }
       return;
     } else if (this.consoleWarnLevels[info[LEVEL]]) {
-      if (console._stderr) {
+      if (console._stderr && !this.forceConsole) {
         // Node.js maps `process.stderr` to `console._stderr`.
         // in Node.js console.warn is an alias for console.error
         console._stderr.write(`${info[MESSAGE]}${this.eol}`);
       } else {
         // console.warn adds a newline
-        console.warn(info[MESSAGE]);
+        this._consoleWarn(info[MESSAGE]);
       }
 
       if (callback) {
@@ -63243,12 +63251,12 @@ module.exports = class Console extends TransportStream {
       return;
     }
 
-    if (console._stdout) {
+    if (console._stdout && !this.forceConsole) {
       // Node.js maps `process.stdout` to `console._stdout`.
       console._stdout.write(`${info[MESSAGE]}${this.eol}`);
     } else {
       // console.log adds a newline.
-      console.log(info[MESSAGE]);
+      this._consoleLog(info[MESSAGE]);
     }
 
     if (callback) {
@@ -63265,16 +63273,16 @@ module.exports = class Console extends TransportStream {
    * @private
    */
   _stringArrayToSet(strArray, errMsg) {
-    if (!strArray)
-      return {};
+    if (!strArray) return {};
 
-    errMsg = errMsg || 'Cannot make set from type other than Array of string elements';
+    errMsg =
+      errMsg || 'Cannot make set from type other than Array of string elements';
 
     if (!Array.isArray(strArray)) {
       throw new Error(errMsg);
     }
 
-    return strArray.reduce((set, el) =>  {
+    return strArray.reduce((set, el) => {
       if (typeof el !== 'string') {
         throw new Error(errMsg);
       }
@@ -63732,9 +63740,7 @@ module.exports = class File extends TransportStream {
       this._dest = this._createStream(this._stream);
       this._opening = false;
       this.once('open', () => {
-        if (this._stream.eventNames().includes('rotate')) {
-          this._stream.emit('rotate');
-        } else {
+        if (!this._stream.emit('rotate')) {
           this._rotate = false;
         }
       });
@@ -71580,7 +71586,7 @@ module.exports = JSON.parse('{"name":"dotenv","version":"16.4.5","description":"
 /***/ 2561:
 /***/ ((module) => {
 
-module.exports = {"version":"3.13.1"};
+module.exports = {"version":"3.14.1"};
 
 /***/ })
 
