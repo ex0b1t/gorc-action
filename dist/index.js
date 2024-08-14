@@ -63187,13 +63187,6 @@ const TransportStream = __nccwpck_require__(7281);
  * @extends {TransportStream}
  */
 module.exports = class Console extends TransportStream {
-  // Keep a reference to the log, warn, and error console methods
-  // in case they get redirected to this transport after the logger is
-  // instantiated. This prevents a circular reference issue.
-  _consoleLog = console.log.bind(console);
-  _consoleWarn = console.warn.bind(console);
-  _consoleError = console.error.bind(console);
-
   /**
    * Constructor function for the Console transport object responsible for
    * persisting log messages and metadata to a terminal or TTY.
@@ -63208,6 +63201,13 @@ module.exports = class Console extends TransportStream {
     this.consoleWarnLevels = this._stringArrayToSet(options.consoleWarnLevels);
     this.eol = typeof options.eol === 'string' ? options.eol : os.EOL;
     this.forceConsole = options.forceConsole || false;
+
+    // Keep a reference to the log, warn, and error console methods
+    // in case they get redirected to this transport after the logger is
+    // instantiated. This prevents a circular reference issue.
+    this._consoleLog = console.log.bind(console);
+    this._consoleWarn = console.warn.bind(console);
+    this._consoleError = console.error.bind(console);
 
     this.setMaxListeners(30);
   }
@@ -71586,7 +71586,7 @@ module.exports = JSON.parse('{"name":"dotenv","version":"16.4.5","description":"
 /***/ 2561:
 /***/ ((module) => {
 
-module.exports = {"version":"3.14.1"};
+module.exports = {"version":"3.14.2"};
 
 /***/ })
 
