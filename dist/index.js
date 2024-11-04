@@ -62228,6 +62228,7 @@ class Logger extends Transform {
 
         if (meta.message) info.message = `${info.message} ${meta.message}`;
         if (meta.stack) info.stack = meta.stack;
+        if (meta.cause) info.cause = meta.cause;
 
         this.write(info);
         return this;
@@ -71602,7 +71603,7 @@ module.exports = /*#__PURE__*/JSON.parse('{"name":"dotenv","version":"16.4.5","d
 /***/ 6256:
 /***/ ((module) => {
 
-module.exports = {"version":"3.15.0"};
+module.exports = {"version":"3.16.0"};
 
 /***/ })
 
