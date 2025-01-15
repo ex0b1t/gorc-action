@@ -32,7 +32,7 @@
     "deep-diff": "^1.0.2",
     "dotenv": "^16.4.7",
     "eslint-plugin-github": "^5.1.5",
-    "eslint-plugin-jest": "^28.10.0",
+    "eslint-plugin-jest": "^28.11.0",
     "husky": "^9.1.7",
     "jest": "^29.7.0",
     "js-yaml": "^4.1.0",
